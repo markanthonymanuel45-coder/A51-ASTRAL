@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CODM Scrim Admin Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #020617 0%, #020617 45%, #000 100%);
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 32px auto 40px;
+      padding: 0 16px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .badge-admin {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      background: rgba(248, 113, 113, 0.08);
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      color: #fecaca;
+    }
+
+    /* Layout with side panel */
+    .layout {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .sidebar {
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), rgba(15, 23, 42, 0.96));
+      border-radius: 18px;
+      padding: 14px 12px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.95);
+      height: 100%;
+    }
+
+    .sidebar-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #9ca3af;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sidebar-item {
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 13px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #9ca3af;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .sidebar-item span {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.8;
+    }
+
+    .sidebar-item.active {
+      background: rgba(37, 99, 235, 0.3);
+      border-color: rgba(129, 140, 248, 0.9);
+      color: #e5e7eb;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .sidebar-item:not(.active):hover {
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      border-color: rgba(55, 65, 81, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.9);
+    }
+
+    .main-view {
+      min-width: 0;
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), rgba(15, 23, 42, 0.96));
+      border-radius: 18px;
+      padding: 18px 18px 14px;
+      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      margin-bottom: 18px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+
+    .field label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+    }
+
+    .field input {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #e5e7eb;
+      font-size: 13px;
+      min-width: 80px;
+    }
+
+    .field input::placeholder {
+      color: #6b7280;
+    }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .metric-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #e5e7eb;
+    }
+
+    .metric-pill span {
+      font-weight: 600;
+      color: #f9fafb;
+    }
+
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+      max-height: 430px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .slot-card {
+      border-radius: 12px;
+      padding: 10px 10px 9px;
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 118, 110, 0.4));
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .slot-card.empty {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(55, 65, 81, 0.7));
+      border-style: dashed;
+      opacity: 0.8;
+    }
+
+    .slot-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .slot-number {
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .slot-status {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 1);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 9px;
+    }
+
+    .slot-status.filled {
+      border-color: rgba(52, 211, 153, 0.9);
+      color: #bbf7d0;
+      background: rgba(6, 95, 70, 0.4);
+    }
+
+    .slot-status.empty {
+      border-color: rgba(148, 163, 184, 0.9);
+      color: #e5e7eb;
+      background: rgba(31, 41, 55, 0.9);
+    }
+
+    .slot-clan {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f9fafb;
+      word-break: break-word;
+    }
+
+    .slot-tag {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .footer {
+      margin-top: 18px;
+      font-size: 11px;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 7px 14px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: #9ca3af;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(31, 41, 55, 0.9);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: #0b0f14;
+      border: 1px solid rgba(239, 68, 68, 0.9);
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(239, 68, 68, 0.5);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .chip {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(31, 41, 55, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: #e5e7eb;
+    }
+
+    .chip strong {
+      color: #a5b4fc;
+    }
+
+    @media (max-width: 640px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        order: -1;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-title">Admin Panel</div>
+        <div class="sidebar-nav">
+          <button id="navScrim" class="sidebar-item active">
+            Scrim Slots
+            <span></span>
+          </button>
+          <button id="navScoreboard" class="sidebar-item">
+            Scoreboard
+            <span></span>
+          </button>
+        </div>
+      </aside>
+
+      <div class="main-view">
+        <header>
+          <div class="title-block">
+            <h1>Scrim Slots · Admin</h1>
+            <div class="subtitle" id="viewSubtitle">Overview of all reserved slots and clan usage.</div>
+          </div>
+          <div class="badge-admin">
+            <span>●</span> ADMIN VIEW ONLY
+          </div>
+        </header>
+
+        <!-- SCRIM SLOTS VIEW -->
+        <div id="scrimView">
+          <div class="card">
+            <div class="card-header">
+              <div class="filters">
+                <div class="field">
+                  <label for="searchClan">Search</label>
+                  <input id="searchClan" type="text" placeholder="Clan or tag...">
+                </div>
+                <button id="refreshBtn" class="btn btn-ghost">Refresh</button>
+                <button id="resetBtnAdmin" class="btn btn-danger">Reset All Slots</button>
+              </div>
+              <div class="metrics">
+                <div class="metric-pill">
+                  Slots used: <span id="usedCount">0</span>/<span id="maxSlots">0</span>
+                </div>
+                <div class="metric-pill">
+                  Unique clans: <span id="uniqueClans">0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chips" id="topClans"></div>
+            <div class="slot-grid" id="slotGrid"></div>
+
+            <div class="footer">
+              <div>Tip: Use the search box to quickly locate a specific clan or tag (e.g. "A51").</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCOREBOARD VIEW -->
+        <div id="scoreboardView" style="display:none;">
+          <div class="card">
+            <div class="card-header">
+              <div style="font-size:14px; font-weight:600;">Scoreboard</div>
+              <div class="metrics">
+                <div class="metric-pill">
+                  Teams shown here are pulled automatically from the scrim slots.
+                </div>
+              </div>
+            </div>
+            <div style="font-size:13px; color:#9ca3af; padding:4px 2px 10px 2px; margin-bottom:6px;">
+              Team names are synced from the current scrim list so you don't have to type them again. Fill in round points and totals as needed.
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:520px;">
+                <thead>
+                  <tr style="background:rgba(15,23,42,0.95);">
+                    <th style="text-align:left; padding:6px 8px; border-bottom:1px solid rgba(55,65,81,0.9);">Team Name</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R1</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R2</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R3</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody id="scoreboardBody">
+                  <!-- rows generated from scrim slots -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbx4_eFHd_0qHc_g5ROftXdaPT8pwnN15vBlrfYJVONFkeuYFYVko1VNWUpG6d-BpYU_/exec";
+    const MAX_SLOTS = 25;
+
+    // Simple front-end guard: if not logged in, go to login page
+    if (localStorage.getItem('codmAdminAuth') !== '1') {
+      window.location.href = 'admin_login.html';
+    }
+
+    const slotGrid = document.getElementById('slotGrid');
+    const usedCountEl = document.getElementById('usedCount');
+    const maxSlotsEl = document.getElementById('maxSlots');
+    const uniqueClansEl = document.getElementById('uniqueClans');
+    const topClansEl = document.getElementById('topClans');
+    const scoreboardBody = document.getElementById('scoreboardBody');
+    const searchClanInput = document.getElementById('searchClan');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const resetBtnAdmin = document.getElementById('resetBtnAdmin');
+
+    const navScrim = document.getElementById('navScrim');
+    const navScoreboard = document.getElementById('navScoreboard');
+    const scrimView = document.getElementById('scrimView');
+    const scoreboardView = document.getElementById('scoreboardView');
+    const viewSubtitle = document.getElementById('viewSubtitle');
+
+    let latestSlots = [];
+
+    function normalize(str) {
+      return (str || '').toString().trim().toLowerCase();
+    }
+
+    async function loadAdminSlots() {
+      try {
+        const res = await fetch(API_URL + "?action=list");
+        const data = await res.json();
+        latestSlots = Array.isArray(data.slots) ? data.slots : [];
+        renderView();
+      } catch (e) {
+        console.error(e);
+        alert("Failed to load slots.");
+      }
+    }
+
+    function setActiveView(view) {
+      if (view === 'scrim') {
+        navScrim.classList.add('active');
+        navScoreboard.classList.remove('active');
+        scrimView.style.display = 'block';
+        scoreboardView.style.display = 'none';
+        viewSubtitle.textContent = 'Overview of all reserved slots and clan usage.';
+      } else {
+        navScrim.classList.remove('active');
+        navScoreboard.classList.add('active');
+        scrimView.style.display = 'none';
+        scoreboardView.style.display = 'block';
+        viewSubtitle.textContent = 'Scoreboard and standings overview.';
+      }
+    }
+
+    function renderView() {
+      const filter = normalize(searchClanInput.value);
+
+      const withMeta = [];
+      for (let i = 1; i <= MAX_SLOTS; i++) {
+        const existing = latestSlots.find(x => x.slot === i);
+        const clanName = existing && existing.clan ? existing.clan.toString() : '';
+        const cleanName = clanName.trim();
+        const isFilled = !!cleanName;
+        const tag = cleanName ? cleanName.split(/\s+/)[0] : '';
+
+        withMeta.push({
+          slot: i,
+          clan: cleanName,
+          isFilled,
+          tag
+        });
+      }
+
+      let filtered = withMeta;
+      if (filter) {
+        filtered = withMeta.filter(s => {
+          const name = normalize(s.clan);
+          const tag = normalize(s.tag);
+          return name.includes(filter) || tag.includes(filter) || String(s.slot).includes(filter);
+        });
+      }
+
+      // metrics
+      const filled = withMeta.filter(s => s.isFilled);
+      usedCountEl.textContent = filled.length.toString();
+      maxSlotsEl.textContent = MAX_SLOTS.toString();
+
+      const clanCounts = {};
+      filled.forEach(s => {
+        const key = s.tag || s.clan || 'Unknown';
+        const kNorm = key.toUpperCase();
+        clanCounts[kNorm] = (clanCounts[kNorm] || 0) + 1;
+      });
+      const uniqueClans = Object.keys(clanCounts).length;
+      uniqueClansEl.textContent = uniqueClans.toString();
+
+      const top = Object.entries(clanCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6);
+
+      topClansEl.innerHTML = '';
+      top.forEach(([name, count]) => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = `${name} · ${count} team${count > 1 ? 's' : ''}`;
+        topClansEl.appendChild(chip);
+      });
+
+      // ---- Scoreboard rows (team list auto from scrim slots) ----
+      if (scoreboardBody) {
+        scoreboardBody.innerHTML = '';
+        const teamNames = filled
+          .map(s => s.clan)
+          .filter(Boolean);
+
+        // unique team names, keep original order
+        const seen = new Set();
+        const uniqueTeams = [];
+        for (const name of teamNames) {
+          const key = name.trim();
+          if (!key || seen.has(key.toUpperCase())) continue;
+          seen.add(key.toUpperCase());
+          uniqueTeams.push(key);
+        }
+
+        uniqueTeams.forEach(name => {
+          const tr = document.createElement('tr');
+          tr.style.background = 'rgba(15,23,42,0.85)';
+
+          const nameTd = document.createElement('td');
+          nameTd.textContent = name;
+          nameTd.style.padding = '5px 8px';
+          nameTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+
+          tr.appendChild(nameTd);
+
+          // keep refs to score inputs so we can auto-total
+          const scoreInputs = [];
+
+          // helper to create editable score cells
+          function addCell(isTotal = false) {
+            const td = document.createElement('td');
+            td.style.padding = '4px 4px';
+            td.style.textAlign = 'center';
+            td.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.style.width = '44px';
+            input.style.padding = '2px 4px';
+            input.style.borderRadius = '6px';
+            input.style.border = '1px solid rgba(55,65,81,0.9)';
+            input.style.background = 'rgba(15,23,42,0.95)';
+            input.style.color = '#e5e7eb';
+            input.style.fontSize = '11px';
+            input.dataset.role = isTotal ? 'total' : 'score';
+            td.appendChild(input);
+            tr.appendChild(td);
+            scoreInputs.push(input);
+          }
+
+          // R1, PP1, R2, PP2, R3, PP3, TOTAL
+          addCell(); addCell(); addCell(); addCell(); addCell(); addCell(); addCell(true);
+
+          // auto-calc total whenever any score cell changes
+          const totalInput = scoreInputs[scoreInputs.length - 1];
+          function recomputeTotal() {
+            let sum = 0;
+            for (let i = 0; i < scoreInputs.length - 1; i++) {
+              const v = parseInt(scoreInputs[i].value, 10);
+              if (!isNaN(v)) sum += v;
+            }
+            totalInput.value = sum ? String(sum) : '';
+          }
+          scoreInputs.forEach((inp, idx) => {
+            if (idx === scoreInputs.length - 1) return; // skip total itself
+            inp.addEventListener('input', recomputeTotal);
+          });
+
+          scoreboardBody.appendChild(tr);
+        });
+      }
+
+      // slots
+      slotGrid.innerHTML = '';
+      filtered.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'slot-card ' + (s.isFilled ? '' : 'empty');
+
+        const topRow = document.createElement('div');
+        topRow.className = 'slot-top';
+        const num = document.createElement('div');
+        num.className = 'slot-number';
+        num.textContent = 'Slot ' + s.slot;
+        const status = document.createElement('div');
+        status.className = 'slot-status ' + (s.isFilled ? 'filled' : 'empty');
+        status.textContent = s.isFilled ? 'FILLED' : 'EMPTY';
+        topRow.appendChild(num);
+        topRow.appendChild(status);
+
+        const clan = document.createElement('div');
+        clan.className = 'slot-clan';
+        clan.textContent = s.isFilled ? s.clan : '—';
+
+        const tag = document.createElement('div');
+        tag.className = 'slot-tag';
+        tag.textContent = s.isFilled && s.tag ? 'Clan tag: ' + s.tag : '';
+
+        card.appendChild(topRow);
+        card.appendChild(clan);
+        if (tag.textContent) {
+          card.appendChild(tag);
+        }
+
+        // Admin can delete a filled slot directly from dashboard
+        if (s.isFilled && s.clan) {
+          const deleteBtn = document.createElement('button');
+          deleteBtn.textContent = 'Delete slot';
+          deleteBtn.className = 'btn btn-danger';
+          deleteBtn.style.marginTop = '6px';
+          deleteBtn.style.padding = '4px 10px';
+          deleteBtn.style.fontSize = '11px';
+          deleteBtn.onclick = async () => {
+            const ok = confirm(`Delete slot ${s.slot} for "${s.clan}"?`);
+            if (!ok) return;
+            try {
+              const res = await fetch(API_URL + "?action=cancel&clan=" + encodeURIComponent(s.clan));
+              const text = await res.text();
+
+              let data;
+              try {
+                data = JSON.parse(text);
+              } catch (parseErr) {
+                console.error('Raw response from backend (not JSON):', text);
+                alert('Backend error while deleting slot:\n' + text);
+                return;
+              }
+
+              const status = (data.status || '').toString().toUpperCase();
+              if (status === 'CANCELLED') {
+                alert(`Slot ${s.slot} deleted.`);
+                loadAdminSlots();
+              } else {
+                alert('Failed to delete slot. Status: ' + status);
+              }
+            } catch (e) {
+              console.error(e);
+              alert('Error while deleting slot.');
+            }
+          };
+          card.appendChild(deleteBtn);
+        }
+
+        slotGrid.appendChild(card);
+      });
+    }
+
+    // events
+    searchClanInput.addEventListener('input', () => {
+      renderView();
+    });
+
+    refreshBtn.addEventListener('click', () => {
+      loadAdminSlots();
+    });
+
+    resetBtnAdmin.addEventListener('click', async () => {
+      const key = prompt("Enter Admin Key to reset all slots:");
+      if (!key) return;
+      try {
+        const res = await fetch(API_URL + "?action=reset&key=" + encodeURIComponent(key));
+        const data = await res.json();
+        if (data.status === 'reset_done') {
+          alert("All slots reset.");
+          loadAdminSlots();
+        } else {
+          alert("Reset failed. Check admin key.");
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Error while resetting.");
+      }
+    });
+
+    navScrim.addEventListener('click', () => setActiveView('scrim'));
+    navScoreboard.addEventListener('click', () => setActiveView('scoreboard'));
+
+    setActiveView('scrim');
+    loadAdminSlots();
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CODM Scrim · Admin Login</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #020617 0%, #020617 45%, #000 100%);
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-card {
+      background: radial-gradient(circle at top, #1f2933 0%, #020617 55%);
+      padding: 24px 22px 20px;
+      border-radius: 18px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148,163,184,0.5);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      letter-spacing: 0.03em;
+      color: #bfdbfe;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
+
+    .input {
+      width: 92%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.8);
+      background: rgba(15,23,42,0.9);
+      color: #e5e7eb;
+      margin: 0 auto 10px;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    }
+
+    .input::placeholder {
+      color: #6b7280;
+    }
+
+    .input:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.55), 0 10px 30px rgba(15,23,42,0.7);
+      background: rgba(15,23,42,1);
+      transform: translateY(-1px);
+    }
+
+    .error {
+      font-size: 11px;
+      color: #fecaca;
+      min-height: 14px;
+      margin-bottom: 6px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 8px 16px;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #0b0f14;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(37,99,235,0.5);
+    }
+
+    .btn-ghost {
+      margin-top: 8px;
+      background: transparent;
+      color: #9ca3af;
+      border: 1px solid rgba(55,65,81,0.9);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(31,41,55,0.9);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15,23,42,0.9);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h1>Admin Login</h1>
+    <div class="subtitle">Enter the admin key to access the dashboard.</div>
+    <input type="password" id="adminKey" class="input" placeholder="Admin key">
+    <div id="errorMsg" class="error"></div>
+    <button id="loginBtn" class="btn btn-primary">Continue</button>
+  </div>
+
+  <script>
+    // IMPORTANT: this must match ADMIN_KEY in your Apps Script
+    const ADMIN_PASS = 'A51 ASTRAL';
+
+    const keyInput = document.getElementById('adminKey');
+    const loginBtn = document.getElementById('loginBtn');
+    const backBtn = document.getElementById('backBtn');
+    const errorMsg = document.getElementById('errorMsg');
+
+    function doLogin() {
+      const val = (keyInput.value || '').trim();
+      if (!val) {
+        errorMsg.textContent = 'Please enter the admin key.';
+        return;
+      }
+      if (val !== ADMIN_PASS) {
+        errorMsg.textContent = 'Incorrect admin key.';
+        return;
+      }
+      // mark as logged in for this browser
+      localStorage.setItem('codmAdminAuth', '1');
+      errorMsg.textContent = '';
+      window.location.href = 'admin_dashboard.html';
+    }
+
+    loginBtn.onclick = doLogin;
+    keyInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    backBtn.onclick = () => {
+      window.location.href = 'scrim_reservation.html';
+    };
+
+    // If already logged in, go straight to dashboard
+    if (localStorage.getItem('codmAdminAuth') === '1') {
+      window.location.href = 'admin_dashboard.html';
+    } else {
+      setTimeout(() => keyInput.focus(), 50);
+    }
+  </script>
+</body>
+</html>
+
