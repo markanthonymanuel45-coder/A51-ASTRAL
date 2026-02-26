@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -351,8 +352,8 @@
       position: fixed;
       right: 16px;
       bottom: 16px;
-      background: rgba(15,23,42,0.95);
-      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(55, 65, 81, 0.9);
       color: #e5e7eb;
       padding: 7px 12px;
       border-radius: 999px;
@@ -362,14 +363,17 @@
       transition: opacity 0.2s ease, transform 0.2s ease;
       z-index: 3000;
     }
+
     .admin-toast.visible {
       opacity: 1;
       transform: translateY(0);
     }
+
     .admin-toast.success {
       border-color: #22c55e;
       color: #bbf7d0;
     }
+
     .admin-toast.error {
       border-color: #f97316;
       color: #fed7aa;
@@ -378,38 +382,42 @@
     .admin-popup {
       position: fixed;
       inset: 0;
-      background: rgba(15,23,42,0.85);
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(6px);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 2500;
     }
+
     .admin-popup-content {
       background: radial-gradient(circle at top, #1f2933 0%, #020617 55%);
       padding: 22px 20px 18px;
       border-radius: 16px;
       width: 320px;
       text-align: center;
-      box-shadow: 0 22px 55px rgba(15,23,42,0.9);
-      border: 1px solid rgba(148,163,184,0.5);
+      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.5);
     }
+
     .admin-popup-content h3 {
       margin: 0 0 8px;
       font-size: 16px;
       color: #bfdbfe;
     }
+
     .admin-popup-message {
       font-size: 12px;
       color: #9ca3af;
       margin-bottom: 10px;
     }
+
     .admin-popup-input {
       width: 92%;
       padding: 8px 10px;
       border-radius: 10px;
-      border: 1px solid rgba(148,163,184,0.8);
-      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.9);
       color: #e5e7eb;
       margin: 0 auto 10px;
       font-size: 13px;
@@ -418,18 +426,21 @@
       transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
       display: none;
     }
+
     .admin-popup-input:focus {
       border-color: #60a5fa;
-      box-shadow: 0 0 0 1px rgba(59,130,246,0.55), 0 10px 30px rgba(15,23,42,0.7);
-      background: rgba(15,23,42,1);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.55), 0 10px 30px rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 1);
       transform: translateY(-1px);
     }
+
     .admin-popup-buttons {
       display: flex;
       justify-content: space-between;
       gap: 10px;
       margin-top: 6px;
     }
+
     .admin-popup-buttons button {
       flex: 1;
       padding: 8px 10px;
@@ -440,37 +451,44 @@
       cursor: pointer;
       transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
     }
+
     .admin-popup-confirm {
       background: #3b82f6;
       color: #0b0f14;
     }
+
     .admin-popup-confirm:hover {
       background: #2563eb;
       transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(37,99,235,0.5);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.5);
     }
+
     .admin-popup-cancel {
       background: #e5e7eb;
       color: #0b0f14;
     }
+
     .admin-popup-cancel:hover {
       background: #f3f4f6;
       transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(15,23,42,0.7);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.7);
     }
 
     @media (max-width: 640px) {
       .layout {
         grid-template-columns: 1fr;
       }
+
       .sidebar {
         order: -1;
       }
+
       header {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
       }
+
       .card-header {
         flex-direction: column;
         align-items: flex-start;
@@ -478,6 +496,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="page">
     <div class="layout">
@@ -507,7 +526,8 @@
             </div>
             <div style="font-size:11px; color:#9ca3af;">
               Reservations: <span id="reservationStatusLabel">…</span>
-              <button id="toggleOpenBtn" class="btn btn-ghost" style="margin-left:6px; padding:4px 10px; font-size:11px;">Toggle</button>
+              <button id="toggleOpenBtn" class="btn btn-ghost"
+                style="margin-left:6px; padding:4px 10px; font-size:11px;">Toggle</button>
             </div>
           </div>
         </header>
@@ -522,6 +542,7 @@
                   <input id="searchClan" type="text" placeholder="Clan or tag...">
                 </div>
                 <button id="refreshBtn" class="btn btn-ghost">Refresh</button>
+                <button id="copySlotsBtn" class="btn btn-ghost">Copy Slots</button>
                 <button id="resetBtnAdmin" class="btn btn-danger">Reset All Slots</button>
               </div>
               <div class="metrics">
@@ -558,14 +579,16 @@
               </div>
             </div>
             <div style="font-size:13px; color:#9ca3af; padding:4px 2px 10px 2px; margin-bottom:6px;">
-              Team names are synced from the current scrim list so you don't have to type them again. Fill in round points and totals as needed.
+              Team names are synced from the current scrim list so you don't have to type them again. Fill in round
+              points and totals as needed.
             </div>
 
             <div style="overflow-x:auto;">
               <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:520px;">
                 <thead>
                   <tr style="background:rgba(15,23,42,0.95);">
-                    <th style="text-align:left; padding:6px 8px; border-bottom:1px solid rgba(55,65,81,0.9);">Team Name</th>
+                    <th style="text-align:left; padding:6px 8px; border-bottom:1px solid rgba(55,65,81,0.9);">Team Name
+                    </th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R1</th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R2</th>
@@ -623,6 +646,7 @@
     const scoreboardBody = document.getElementById('scoreboardBody');
     const searchClanInput = document.getElementById('searchClan');
     const refreshBtn = document.getElementById('refreshBtn');
+    const copySlotsBtn = document.getElementById('copySlotsBtn');
     const resetBtnAdmin = document.getElementById('resetBtnAdmin');
 
     const navScrim = document.getElementById('navScrim');
@@ -961,6 +985,35 @@
       loadAdminSlots();
     });
 
+    copySlotsBtn.addEventListener('click', async () => {
+      let text = "𝑨51 𝑩𝑹 𝑺𝑪𝑹𝑰𝑴𝑴𝑰𝑴𝑨𝑮𝑬‼️\n\n𝑺𝑳𝑶𝑻𝑺 𝑳𝑰𝑺𝑻 :\n";
+      for (let i = 1; i <= MAX_SLOTS; i++) {
+        const existing = latestSlots.find(x => x.slot === i);
+        const clanName = existing && existing.clan ? existing.clan.trim() : '';
+        text += `${i}. ${clanName}\n`;
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showAdminToast("Slots copied to clipboard!", 'success');
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          showAdminToast("Slots copied to clipboard!", 'success');
+        } catch (err2) {
+          showAdminToast("Failed to copy slots.", 'error');
+        }
+        document.body.removeChild(textArea);
+      }
+    });
+
     resetBtnAdmin.addEventListener('click', async () => {
       const { confirmed } = await openAdminPopup({
         title: 'Reset all slots',
@@ -1068,7 +1121,7 @@
             method: 'POST',
             headers: { ...supabaseHeaders(), Prefer: 'resolution=merge-duplicates' },
             body: JSON.stringify([{ key: 'scoreboard_date', value: gameDate }]),
-          }).catch(() => {});
+          }).catch(() => { });
           showAdminToast('Scoreboard saved for public view.', 'success');
         } else {
           showAdminToast('Failed to save scoreboard.', 'error');
@@ -1133,5 +1186,5 @@
     }, 5000);
   </script>
 </body>
-</html>
 
+</html>
