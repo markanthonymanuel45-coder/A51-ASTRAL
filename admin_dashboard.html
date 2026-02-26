@@ -327,6 +327,18 @@
       box-shadow: 0 10px 24px rgba(239, 68, 68, 0.5);
     }
 
+    .btn-update {
+      background: #3b82f6;
+      color: #0b0f14;
+      border: 1px solid rgba(59, 130, 246, 0.9);
+    }
+
+    .btn-update:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.5);
+    }
+
     .chips {
       display: flex;
       flex-wrap: wrap;
@@ -614,7 +626,7 @@
     <div class="admin-popup-content">
       <h3 id="adminPopupTitle">Title</h3>
       <div id="adminPopupMessage" class="admin-popup-message"></div>
-      <input type="password" id="adminPopupInput" class="admin-popup-input" placeholder="Admin key">
+      <input type="text" id="adminPopupInput" class="admin-popup-input" placeholder="Admin key">
       <div class="admin-popup-buttons">
         <button id="adminPopupConfirm" class="admin-popup-confirm">Confirm</button>
         <button id="adminPopupCancel" class="admin-popup-cancel">Cancel</button>
@@ -688,10 +700,10 @@
       }, 2200);
     }
 
-    function openAdminPopup({ title, message, requireInput = false, placeholder = 'Admin key', confirmText = 'Confirm', cancelText = 'Cancel' }) {
+    function openAdminPopup({ title, message, requireInput = false, placeholder = 'Admin key', initialValue = '', confirmText = 'Confirm', cancelText = 'Cancel' }) {
       adminPopupTitle.textContent = title || '';
       adminPopupMessage.textContent = message || '';
-      adminPopupInput.value = '';
+      adminPopupInput.value = initialValue || '';
       adminPopupInput.placeholder = placeholder || '';
       adminPopupInput.style.display = requireInput ? 'block' : 'none';
       adminPopupConfirm.textContent = confirmText;
@@ -935,13 +947,59 @@
           card.appendChild(tag);
         }
 
-        // Admin can delete a filled slot directly from dashboard
+        // Admin can update or delete a filled slot directly from dashboard
         if (s.isFilled && s.clan) {
+          const actionsDiv = document.createElement('div');
+          actionsDiv.style.display = 'flex';
+          actionsDiv.style.gap = '6px';
+          actionsDiv.style.marginTop = '8px';
+
+          const updateBtn = document.createElement('button');
+          updateBtn.textContent = 'Update';
+          updateBtn.className = 'btn btn-update';
+          updateBtn.style.flex = '1';
+          updateBtn.style.padding = '4px 8px';
+          updateBtn.style.fontSize = '11px';
+          updateBtn.onclick = async () => {
+            const { confirmed, value } = await openAdminPopup({
+              title: 'Update Clan Name',
+              message: `Edit clan name for Slot ${s.slot}:`,
+              requireInput: true,
+              initialValue: s.clan,
+              placeholder: 'New clan name',
+              confirmText: 'Update',
+              cancelText: 'Cancel'
+            });
+            if (!confirmed || !s.id) return;
+            const newClan = (value || '').trim();
+            if (!newClan) {
+              showAdminToast('Clan name cannot be empty.', 'error');
+              return;
+            }
+
+            try {
+              const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${s.id}`, {
+                method: 'PATCH',
+                headers: supabaseHeaders(),
+                body: JSON.stringify({ clan: newClan }),
+              });
+              if (res.ok) {
+                showAdminToast(`Slot ${s.slot} updated to "${newClan}".`, 'success');
+                loadAdminSlots();
+              } else {
+                showAdminToast('Failed to update slot.', 'error');
+              }
+            } catch (e) {
+              console.error(e);
+              showAdminToast('Error while updating slot.', 'error');
+            }
+          };
+
           const deleteBtn = document.createElement('button');
-          deleteBtn.textContent = 'Delete slot';
+          deleteBtn.textContent = 'Delete';
           deleteBtn.className = 'btn btn-danger';
-          deleteBtn.style.marginTop = '6px';
-          deleteBtn.style.padding = '4px 10px';
+          deleteBtn.style.flex = '1';
+          deleteBtn.style.padding = '4px 8px';
           deleteBtn.style.fontSize = '11px';
           deleteBtn.onclick = async () => {
             const { confirmed } = await openAdminPopup({
@@ -969,7 +1027,10 @@
               showAdminToast('Error while deleting slot.', 'error');
             }
           };
-          card.appendChild(deleteBtn);
+
+          actionsDiv.appendChild(updateBtn);
+          actionsDiv.appendChild(deleteBtn);
+          card.appendChild(actionsDiv);
         }
 
         slotGrid.appendChild(card);
