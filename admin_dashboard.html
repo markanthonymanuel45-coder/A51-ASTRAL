@@ -346,6 +346,119 @@
       color: #a5b4fc;
     }
 
+    /* Admin toast + popup (replace browser alerts/prompts) */
+    .admin-toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid rgba(55,65,81,0.9);
+      color: #e5e7eb;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 3000;
+    }
+    .admin-toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .admin-toast.success {
+      border-color: #22c55e;
+      color: #bbf7d0;
+    }
+    .admin-toast.error {
+      border-color: #f97316;
+      color: #fed7aa;
+    }
+
+    .admin-popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2500;
+    }
+    .admin-popup-content {
+      background: radial-gradient(circle at top, #1f2933 0%, #020617 55%);
+      padding: 22px 20px 18px;
+      border-radius: 16px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 22px 55px rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.5);
+    }
+    .admin-popup-content h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #bfdbfe;
+    }
+    .admin-popup-message {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 10px;
+    }
+    .admin-popup-input {
+      width: 92%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.8);
+      background: rgba(15,23,42,0.9);
+      color: #e5e7eb;
+      margin: 0 auto 10px;
+      font-size: 13px;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
+      display: none;
+    }
+    .admin-popup-input:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.55), 0 10px 30px rgba(15,23,42,0.7);
+      background: rgba(15,23,42,1);
+      transform: translateY(-1px);
+    }
+    .admin-popup-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .admin-popup-buttons button {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .admin-popup-confirm {
+      background: #3b82f6;
+      color: #0b0f14;
+    }
+    .admin-popup-confirm:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(37,99,235,0.5);
+    }
+    .admin-popup-cancel {
+      background: #e5e7eb;
+      color: #0b0f14;
+    }
+    .admin-popup-cancel:hover {
+      background: #f3f4f6;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(15,23,42,0.7);
+    }
+
     @media (max-width: 640px) {
       .layout {
         grid-template-columns: 1fr;
@@ -388,8 +501,14 @@
             <h1>Scrim Slots · Admin</h1>
             <div class="subtitle" id="viewSubtitle">Overview of all reserved slots and clan usage.</div>
           </div>
-          <div class="badge-admin">
-            <span>●</span> ADMIN VIEW ONLY
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="badge-admin">
+              <span>●</span> ADMIN VIEW ONLY
+            </div>
+            <div style="font-size:11px; color:#9ca3af;">
+              Reservations: <span id="reservationStatusLabel">…</span>
+              <button id="toggleOpenBtn" class="btn btn-ghost" style="margin-left:6px; padding:4px 10px; font-size:11px;">Toggle</button>
+            </div>
           </div>
         </header>
 
@@ -433,6 +552,9 @@
                 <div class="metric-pill">
                   Teams shown here are pulled automatically from the scrim slots.
                 </div>
+                <button id="saveScoreboardBtn" class="btn btn-ghost" style="font-size:11px; padding:6px 10px;">
+                  Save scoreboard
+                </button>
               </div>
             </div>
             <div style="font-size:13px; color:#9ca3af; padding:4px 2px 10px 2px; margin-bottom:6px;">
@@ -464,9 +586,29 @@
     </div>
   </div>
 
+  <!-- Reusable admin popup (for confirmations / admin key) -->
+  <div class="admin-popup" id="adminPopup">
+    <div class="admin-popup-content">
+      <h3 id="adminPopupTitle">Title</h3>
+      <div id="adminPopupMessage" class="admin-popup-message"></div>
+      <input type="password" id="adminPopupInput" class="admin-popup-input" placeholder="Admin key">
+      <div class="admin-popup-buttons">
+        <button id="adminPopupConfirm" class="admin-popup-confirm">Confirm</button>
+        <button id="adminPopupCancel" class="admin-popup-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbx4_eFHd_0qHc_g5ROftXdaPT8pwnN15vBlrfYJVONFkeuYFYVko1VNWUpG6d-BpYU_/exec";
+    const SUPABASE_URL = 'https://yzdtszfubnastllfyczs.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6ZHRzemZ1Ym5hc3RsbGZ5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNzEyOTgsImV4cCI6MjA4NzY0NzI5OH0.GJz1ouXTbi3GQZYJa0756w4CgqabT9C2EH_mW_m_5TY';
     const MAX_SLOTS = 25;
+
+    const supabaseHeaders = () => ({
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+    });
 
     // Simple front-end guard: if not logged in, go to login page
     if (localStorage.getItem('codmAdminAuth') !== '1') {
@@ -488,22 +630,107 @@
     const scrimView = document.getElementById('scrimView');
     const scoreboardView = document.getElementById('scoreboardView');
     const viewSubtitle = document.getElementById('viewSubtitle');
+    const reservationStatusLabel = document.getElementById('reservationStatusLabel');
+    const toggleOpenBtn = document.getElementById('toggleOpenBtn');
+    const saveScoreboardBtn = document.getElementById('saveScoreboardBtn');
+
+    const adminPopup = document.getElementById('adminPopup');
+    const adminPopupTitle = document.getElementById('adminPopupTitle');
+    const adminPopupMessage = document.getElementById('adminPopupMessage');
+    const adminPopupInput = document.getElementById('adminPopupInput');
+    const adminPopupConfirm = document.getElementById('adminPopupConfirm');
+    const adminPopupCancel = document.getElementById('adminPopupCancel');
 
     let latestSlots = [];
+    let adminPopupResolver = null;
 
     function normalize(str) {
       return (str || '').toString().trim().toLowerCase();
     }
 
+    function showAdminToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = 'admin-toast';
+      if (type === 'error') toast.classList.add('error');
+      if (type === 'success') toast.classList.add('success');
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.add('visible');
+      });
+      setTimeout(() => {
+        toast.classList.remove('visible');
+        setTimeout(() => toast.remove(), 250);
+      }, 2200);
+    }
+
+    function openAdminPopup({ title, message, requireInput = false, placeholder = 'Admin key', confirmText = 'Confirm', cancelText = 'Cancel' }) {
+      adminPopupTitle.textContent = title || '';
+      adminPopupMessage.textContent = message || '';
+      adminPopupInput.value = '';
+      adminPopupInput.placeholder = placeholder || '';
+      adminPopupInput.style.display = requireInput ? 'block' : 'none';
+      adminPopupConfirm.textContent = confirmText;
+      adminPopupCancel.textContent = cancelText;
+      adminPopup.style.display = 'flex';
+      if (requireInput) {
+        setTimeout(() => adminPopupInput.focus(), 30);
+      }
+      return new Promise(resolve => {
+        adminPopupResolver = resolve;
+      });
+    }
+
+    adminPopupConfirm.onclick = () => {
+      const value = adminPopupInput.style.display === 'none'
+        ? null
+        : (adminPopupInput.value || '').trim();
+      adminPopup.style.display = 'none';
+      if (adminPopupResolver) {
+        adminPopupResolver({ confirmed: true, value });
+        adminPopupResolver = null;
+      }
+    };
+
+    adminPopupCancel.onclick = () => {
+      adminPopup.style.display = 'none';
+      if (adminPopupResolver) {
+        adminPopupResolver({ confirmed: false, value: null });
+        adminPopupResolver = null;
+      }
+    };
+
     async function loadAdminSlots() {
       try {
-        const res = await fetch(API_URL + "?action=list");
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan&order=slot_number.asc`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        });
         const data = await res.json();
-        latestSlots = Array.isArray(data.slots) ? data.slots : [];
+        const list = Array.isArray(data) ? data : [];
+        latestSlots = list.map(r => ({ id: r.id, slot: r.slot_number, clan: r.clan || '' }));
         renderView();
       } catch (e) {
         console.error(e);
-        alert("Failed to load slots.");
+        showAdminToast("Failed to load slots.", 'error');
+      }
+    }
+
+    async function refreshOpenStatus() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.is_open&select=value`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        });
+        const rows = await res.json();
+        const val = (rows && rows[0] && rows[0].value) ? String(rows[0].value).toLowerCase() : '1';
+        const isOpen = val === '1' || val === 'true' || val === 'yes';
+        reservationStatusLabel.textContent = isOpen ? 'OPEN' : 'CLOSED';
+        reservationStatusLabel.style.color = isOpen ? '#4ade80' : '#f97316';
+        toggleOpenBtn.textContent = isOpen ? 'Close reservations' : 'Open reservations';
+      } catch (e) {
+        console.error(e);
+        reservationStatusLabel.textContent = 'Unknown';
+        reservationStatusLabel.style.color = '#f97316';
+        showAdminToast('Unable to fetch reservation status.', 'error');
       }
     }
 
@@ -538,7 +765,8 @@
           slot: i,
           clan: cleanName,
           isFilled,
-          tag
+          tag,
+          id: existing?.id
         });
       }
 
@@ -692,31 +920,29 @@
           deleteBtn.style.padding = '4px 10px';
           deleteBtn.style.fontSize = '11px';
           deleteBtn.onclick = async () => {
-            const ok = confirm(`Delete slot ${s.slot} for "${s.clan}"?`);
-            if (!ok) return;
+            const { confirmed } = await openAdminPopup({
+              title: 'Delete slot',
+              message: `Delete slot ${s.slot} for "${s.clan}"?`,
+              requireInput: false,
+              confirmText: 'Delete',
+              cancelText: 'Cancel'
+            });
+            if (!confirmed || !s.id) return;
             try {
-              const res = await fetch(API_URL + "?action=cancel&clan=" + encodeURIComponent(s.clan));
-              const text = await res.text();
-
-              let data;
-              try {
-                data = JSON.parse(text);
-              } catch (parseErr) {
-                console.error('Raw response from backend (not JSON):', text);
-                alert('Backend error while deleting slot:\n' + text);
-                return;
-              }
-
-              const status = (data.status || '').toString().toUpperCase();
-              if (status === 'CANCELLED') {
-                alert(`Slot ${s.slot} deleted.`);
+              const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${s.id}`, {
+                method: 'PATCH',
+                headers: supabaseHeaders(),
+                body: JSON.stringify({ clan: null }),
+              });
+              if (res.ok) {
+                showAdminToast(`Slot ${s.slot} deleted.`, 'success');
                 loadAdminSlots();
               } else {
-                alert('Failed to delete slot. Status: ' + status);
+                showAdminToast('Failed to delete slot.', 'error');
               }
             } catch (e) {
               console.error(e);
-              alert('Error while deleting slot.');
+              showAdminToast('Error while deleting slot.', 'error');
             }
           };
           card.appendChild(deleteBtn);
@@ -736,20 +962,159 @@
     });
 
     resetBtnAdmin.addEventListener('click', async () => {
-      const key = prompt("Enter Admin Key to reset all slots:");
-      if (!key) return;
+      const { confirmed } = await openAdminPopup({
+        title: 'Reset all slots',
+        message: 'Clear all slot reservations? This cannot be undone.',
+        requireInput: false,
+        confirmText: 'Reset',
+        cancelText: 'Cancel'
+      });
+      if (!confirmed) return;
       try {
-        const res = await fetch(API_URL + "?action=reset&key=" + encodeURIComponent(key));
-        const data = await res.json();
-        if (data.status === 'reset_done') {
-          alert("All slots reset.");
-          loadAdminSlots();
+        for (const row of latestSlots) {
+          if (row.id) {
+            await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${row.id}`, {
+              method: 'PATCH',
+              headers: supabaseHeaders(),
+              body: JSON.stringify({ clan: null }),
+            });
+          }
+        }
+        showAdminToast("All slots reset.", 'success');
+        loadAdminSlots();
+      } catch (e) {
+        console.error(e);
+        showAdminToast("Error while resetting.", 'error');
+      }
+    });
+
+    saveScoreboardBtn.addEventListener('click', async () => {
+      if (!scoreboardBody) {
+        showAdminToast('No scoreboard table found.', 'error');
+        return;
+      }
+
+      const rows = [];
+      const trs = scoreboardBody.querySelectorAll('tr');
+      trs.forEach(tr => {
+        const cells = tr.querySelectorAll('td');
+        if (!cells.length) return;
+        const team = cells[0].textContent.trim();
+        if (!team) return;
+
+        const getVal = (idx) => {
+          const input = cells[idx] && cells[idx].querySelector('input');
+          if (!input || !input.value) return '';
+          const n = parseInt(input.value, 10);
+          return isNaN(n) ? '' : n;
+        };
+
+        rows.push({
+          team,
+          r1: getVal(1),
+          pp1: getVal(2),
+          r2: getVal(3),
+          pp2: getVal(4),
+          r3: getVal(5),
+          pp3: getVal(6),
+          total: getVal(7),
+        });
+      });
+
+      if (!rows.length) {
+        showAdminToast('No teams to save.', 'error');
+        return;
+      }
+
+      const { confirmed } = await openAdminPopup({
+        title: 'Save scoreboard',
+        message: 'Save the current scoreboard for public view?',
+        requireInput: false,
+        confirmText: 'Save',
+        cancelText: 'Cancel',
+      });
+      if (!confirmed) return;
+
+      try {
+        const listRes = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?select=id`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        });
+        const existing = await listRes.json();
+        if (Array.isArray(existing) && existing.length > 0) {
+          const ids = existing.map(r => r.id).join(',');
+          await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?id=in.(${ids})`, {
+            method: 'DELETE',
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+          });
+        }
+        const payload = rows.map(r => ({
+          team: r.team,
+          r1: r.r1 === '' ? null : Number(r.r1),
+          pp1: r.pp1 === '' ? null : Number(r.pp1),
+          r2: r.r2 === '' ? null : Number(r.r2),
+          pp2: r.pp2 === '' ? null : Number(r.pp2),
+          r3: r.r3 === '' ? null : Number(r.r3),
+          pp3: r.pp3 === '' ? null : Number(r.pp3),
+          total: r.total === '' ? null : Number(r.total),
+        }));
+        const postRes = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard`, {
+          method: 'POST',
+          headers: supabaseHeaders(),
+          body: JSON.stringify(payload),
+        });
+        if (postRes.ok) {
+          const gameDate = new Date().toISOString().slice(0, 10);
+          await fetch(`${SUPABASE_URL}/rest/v1/config`, {
+            method: 'POST',
+            headers: { ...supabaseHeaders(), Prefer: 'resolution=merge-duplicates' },
+            body: JSON.stringify([{ key: 'scoreboard_date', value: gameDate }]),
+          }).catch(() => {});
+          showAdminToast('Scoreboard saved for public view.', 'success');
         } else {
-          alert("Reset failed. Check admin key.");
+          showAdminToast('Failed to save scoreboard.', 'error');
         }
       } catch (e) {
         console.error(e);
-        alert("Error while resetting.");
+        showAdminToast('Error while saving scoreboard.', 'error');
+      }
+    });
+
+    toggleOpenBtn.addEventListener('click', async () => {
+      const makeOpen = (reservationStatusLabel.textContent !== 'OPEN');
+      const { confirmed } = await openAdminPopup({
+        title: makeOpen ? 'Open reservations' : 'Close reservations',
+        message: makeOpen ? 'Open reservations so players can mine slots?' : 'Close reservations?',
+        requireInput: false,
+        confirmText: makeOpen ? 'Open' : 'Close',
+        cancelText: 'Cancel'
+      });
+      if (!confirmed) return;
+      try {
+        const value = makeOpen ? '1' : '0';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.is_open`, {
+          method: 'PATCH',
+          headers: supabaseHeaders(),
+          body: JSON.stringify({ value }),
+        });
+        if (res.ok) {
+          await refreshOpenStatus();
+          showAdminToast('Reservations are now ' + (makeOpen ? 'OPEN' : 'CLOSED') + '.', 'success');
+        } else {
+          const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/config`, {
+            method: 'POST',
+            headers: { ...supabaseHeaders(), Prefer: 'resolution=merge-duplicates' },
+            body: JSON.stringify([{ key: 'is_open', value }]),
+          });
+          if (upsertRes.ok) {
+            await refreshOpenStatus();
+            showAdminToast('Reservations are now ' + (makeOpen ? 'OPEN' : 'CLOSED') + '.', 'success');
+          } else {
+            showAdminToast('Failed to update status.', 'error');
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        showAdminToast('Error while updating reservation status.', 'error');
       }
     });
 
@@ -758,6 +1123,14 @@
 
     setActiveView('scrim');
     loadAdminSlots();
+    refreshOpenStatus();
+
+    // Auto-refresh scrim slots every 5 seconds so admin sees new mines
+    setInterval(() => {
+      if (scrimView.style.display !== 'none') {
+        loadAdminSlots();
+      }
+    }, 5000);
   </script>
 </body>
 </html>
