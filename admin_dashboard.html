@@ -536,10 +536,18 @@
             <div class="badge-admin">
               <span>●</span> ADMIN VIEW ONLY
             </div>
-            <div style="font-size:11px; color:#9ca3af;">
-              Reservations: <span id="reservationStatusLabel">…</span>
-              <button id="toggleOpenBtn" class="btn btn-ghost"
-                style="margin-left:6px; padding:4px 10px; font-size:11px;">Toggle</button>
+            <div
+              style="font-size:11px; color:#9ca3af; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+              <div>
+                Reservations: <span id="reservationStatusLabel">…</span>
+                <button id="toggleOpenBtn" class="btn btn-ghost"
+                  style="margin-left:6px; padding:4px 10px; font-size:11px;">Toggle</button>
+              </div>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                Sched: <span id="scheduleStatusLabel" style="color:#bbf7d0;">None</span>
+                <button id="scheduleBtn" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">Set
+                  Sched</button>
+              </div>
             </div>
           </div>
         </header>
@@ -621,6 +629,33 @@
     </div>
   </div>
 
+  <!-- Schedule Popup -->
+  <div class="admin-popup" id="schedulePopup">
+    <div class="admin-popup-content">
+      <h3 style="margin: 0 0 8px; font-size: 16px; color: #bfdbfe;">Set Schedule</h3>
+      <div style="font-size: 12px; color: #9ca3af; margin-bottom: 10px;">Reservations will automatically open and close
+        daily at these times.</div>
+      <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+        <div style="flex: 1; text-align: left;">
+          <label style="font-size: 11px; color: #9ca3af;">Open Time</label>
+          <input type="time" id="schedStartTime"
+            style="width: 100%; padding: 8px; border-radius: 8px; background: rgba(15, 23, 42, 0.9); border: 1px solid #475569; color: #e5e7eb; box-sizing: border-box; margin-top: 4px;">
+        </div>
+        <div style="flex: 1; text-align: left;">
+          <label style="font-size: 11px; color: #9ca3af;">Close Time</label>
+          <input type="time" id="schedEndTime"
+            style="width: 100%; padding: 8px; border-radius: 8px; background: rgba(15, 23, 42, 0.9); border: 1px solid #475569; color: #e5e7eb; box-sizing: border-box; margin-top: 4px;">
+        </div>
+      </div>
+      <div class="admin-popup-buttons">
+        <button id="schedulePopupSave" class="admin-popup-confirm">Save</button>
+        <button id="schedulePopupClear"
+          style="background: #ef4444; color: #0b0f14; flex: 1; padding: 8px 10px; border-radius: 8px; border: none; font-weight: 600; font-size: 12px; cursor: pointer;">Clear</button>
+        <button id="schedulePopupCancel" class="admin-popup-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Reusable admin popup (for confirmations / admin key) -->
   <div class="admin-popup" id="adminPopup">
     <div class="admin-popup-content">
@@ -669,6 +704,15 @@
     const reservationStatusLabel = document.getElementById('reservationStatusLabel');
     const toggleOpenBtn = document.getElementById('toggleOpenBtn');
     const saveScoreboardBtn = document.getElementById('saveScoreboardBtn');
+
+    const scheduleStatusLabel = document.getElementById('scheduleStatusLabel');
+    const scheduleBtn = document.getElementById('scheduleBtn');
+    const schedulePopup = document.getElementById('schedulePopup');
+    const schedStartTime = document.getElementById('schedStartTime');
+    const schedEndTime = document.getElementById('schedEndTime');
+    const schedulePopupSave = document.getElementById('schedulePopupSave');
+    const schedulePopupClear = document.getElementById('schedulePopupClear');
+    const schedulePopupCancel = document.getElementById('schedulePopupCancel');
 
     const adminPopup = document.getElementById('adminPopup');
     const adminPopupTitle = document.getElementById('adminPopupTitle');
@@ -751,17 +795,77 @@
       }
     }
 
+    function formatTime(t24) {
+      if (!t24) return '';
+      const [h, m] = t24.split(':');
+      let hh = parseInt(h, 10);
+      const ampm = hh >= 12 ? 'PM' : 'AM';
+      hh = hh % 12 || 12;
+      return `${hh}:${m} ${ampm}`;
+    }
+
     async function refreshOpenStatus() {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.is_open&select=value`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(is_open,sched_start,sched_end)&select=key,value`, {
           headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         });
         const rows = await res.json();
-        const val = (rows && rows[0] && rows[0].value) ? String(rows[0].value).toLowerCase() : '1';
-        const isOpen = val === '1' || val === 'true' || val === 'yes';
-        reservationStatusLabel.textContent = isOpen ? 'OPEN' : 'CLOSED';
+        let isOp = '1';
+        let sStart = '';
+        let sEnd = '';
+        rows.forEach(r => {
+          if (r.key === 'is_open') isOp = r.value;
+          if (r.key === 'sched_start') sStart = r.value;
+          if (r.key === 'sched_end') sEnd = r.value;
+        });
+
+        const val = isOp ? String(isOp).toLowerCase() : '1';
+        const isOpenManual = val === '1' || val === 'true' || val === 'yes';
+
+        let isOpenSched = false;
+        if (sStart && sEnd) {
+          const now = new Date();
+          const currentHMs = now.getHours() * 60 + now.getMinutes();
+
+          const [sh, sm] = sStart.split(':').map(Number);
+          const startMs = sh * 60 + sm;
+
+          const [eh, em] = sEnd.split(':').map(Number);
+          const endMs = eh * 60 + em;
+
+          if (startMs <= endMs) {
+            isOpenSched = currentHMs >= startMs && currentHMs <= endMs;
+          } else {
+            isOpenSched = currentHMs >= startMs || currentHMs <= endMs;
+          }
+        }
+
+        const isOpen = isOpenManual || isOpenSched;
+
+        let resStatusText = isOpen ? 'OPEN' : 'CLOSED';
+        if (isOpen && sEnd && isOpenSched) {
+          resStatusText += ` (Closes at ${formatTime(sEnd)})`;
+        }
+
+        reservationStatusLabel.textContent = resStatusText;
         reservationStatusLabel.style.color = isOpen ? '#4ade80' : '#f97316';
-        toggleOpenBtn.textContent = isOpen ? 'Close reservations' : 'Open reservations';
+
+        // Let admin override the manual toggle
+        toggleOpenBtn.textContent = isOpenManual ? 'Close manual toggle' : 'Open manual toggle';
+        // we'll store the literal truth of is_open on a data attr so toggle logic knows what to flip
+        toggleOpenBtn.dataset.currentVal = isOpenManual ? 'open' : 'closed';
+
+        if (sStart && sEnd) {
+          scheduleStatusLabel.textContent = `${formatTime(sStart)} - ${formatTime(sEnd)}`;
+          scheduleStatusLabel.style.color = '#bfdbfe';
+          schedStartTime.value = sStart;
+          schedEndTime.value = sEnd;
+        } else {
+          scheduleStatusLabel.textContent = 'None';
+          scheduleStatusLabel.style.color = '#9ca3af';
+          schedStartTime.value = '';
+          schedEndTime.value = '';
+        }
       } catch (e) {
         console.error(e);
         reservationStatusLabel.textContent = 'Unknown';
@@ -769,6 +873,44 @@
         showAdminToast('Unable to fetch reservation status.', 'error');
       }
     }
+
+    scheduleBtn.addEventListener('click', () => { schedulePopup.style.display = 'flex'; });
+    schedulePopupCancel.addEventListener('click', () => { schedulePopup.style.display = 'none'; });
+
+    async function updateSchedConfig(start, end) {
+      try {
+        const updates = [
+          { key: 'sched_start', value: start },
+          { key: 'sched_end', value: end }
+        ];
+        const promises = updates.map(u => {
+          return fetch(`${SUPABASE_URL}/rest/v1/config`, {
+            method: 'POST',
+            headers: { ...supabaseHeaders(), Prefer: 'resolution=merge-duplicates' },
+            body: JSON.stringify([u]),
+          });
+        });
+        await Promise.all(promises);
+        await refreshOpenStatus();
+        schedulePopup.style.display = 'none';
+        showAdminToast('Schedule updated.', 'success');
+      } catch (e) {
+        console.error(e);
+        showAdminToast('Error updating schedule.', 'error');
+      }
+    }
+
+    schedulePopupSave.addEventListener('click', async () => {
+      if (!schedStartTime.value || !schedEndTime.value) {
+        showAdminToast('Please set both start and end time.', 'error');
+        return;
+      }
+      await updateSchedConfig(schedStartTime.value, schedEndTime.value);
+    });
+
+    schedulePopupClear.addEventListener('click', async () => {
+      await updateSchedConfig('', '');
+    });
 
     function setActiveView(view) {
       if (view === 'scrim') {
@@ -1196,9 +1338,10 @@
     });
 
     toggleOpenBtn.addEventListener('click', async () => {
-      const makeOpen = (reservationStatusLabel.textContent !== 'OPEN');
+      const isCurrentlyManualOpen = toggleOpenBtn.dataset.currentVal === 'open';
+      const makeOpen = !isCurrentlyManualOpen;
       const { confirmed } = await openAdminPopup({
-        title: makeOpen ? 'Open reservations' : 'Close reservations',
+        title: makeOpen ? 'Open reservations manually' : 'Close reservations manually',
         message: makeOpen ? 'Open reservations so players can mine slots?' : 'Close reservations?',
         requireInput: false,
         confirmText: makeOpen ? 'Open' : 'Close',
