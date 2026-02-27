@@ -323,6 +323,15 @@
       const mineBtn = document.getElementById('mineBtn');
       const statusText = document.getElementById('statusText');
 
+      // --- DUAL SCHEDULE LOGIC ---
+      const urlParams = new URLSearchParams(window.location.search);
+      let currentSched = urlParams.get('sched') || '8pm';
+      if (currentSched !== '8pm' && currentSched !== '10pm') currentSched = '8pm';
+
+      // Update Header
+      const h2 = document.querySelector('h2');
+      if (h2) h2.textContent = `A51 ASTRAL ${currentSched.toUpperCase()} Scrim Reservation`;
+
       // Holds latest slots data from the server
       let currentSlots = [];
 
@@ -386,17 +395,17 @@
         }
         submitClan.disabled = true;
         try {
-          // Find first empty slot from Supabase
-          const listRes = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan&order=slot_number.asc`, {
+          // Find first empty slot for the CURRENT schedule
+          const listRes = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan,schedule_type&schedule_type=eq.${currentSched}&order=slot_number.asc`, {
             headers: {
               apikey: SUPABASE_KEY,
               Authorization: `Bearer ${SUPABASE_KEY}`,
-            },
+            }
           });
           const list = await listRes.json();
           const emptyRow = list.find(r => !r.clan || r.clan.toString().trim() === '');
           if (!emptyRow) {
-            showPopup('All slots full!');
+            showPopup(`All slots full for ${currentSched.toUpperCase()}!`);
             submitClan.disabled = false;
             return;
           }
@@ -431,17 +440,16 @@
         }
       }
 
-      // Load slots from Supabase
+      // Load slots from Supabase for this schedule
       async function loadSlots() {
         try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=slot_number,clan&order=slot_number.asc`, {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=slot_number,clan,schedule_type&schedule_type=eq.${currentSched}&order=slot_number.asc`, {
             headers: {
               apikey: SUPABASE_KEY,
               Authorization: `Bearer ${SUPABASE_KEY}`,
             },
           });
           const data = await res.json();
-          // Map to { slot, clan } for existing validation logic
           currentSlots = (Array.isArray(data) ? data : []).map(r => ({
             slot: r.slot_number,
             clan: r.clan || '',
@@ -474,10 +482,11 @@
         return `${hh}:${m} ${ampm}`;
       }
 
-      // Check reservation open/closed status from Supabase config
+      // Check reservation open/closed status for this specific schedule
       async function checkStatus() {
         try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(is_open,sched_start,sched_end)&select=key,value`, {
+          const keys = [`${currentSched}_is_open`, `${currentSched}_sched_start`, `${currentSched}_sched_end`].join(',');
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(${keys})&select=key,value`, {
             headers: {
               apikey: SUPABASE_KEY,
               Authorization: `Bearer ${SUPABASE_KEY}`,
@@ -485,16 +494,16 @@
           });
           const rows = await res.json();
 
-          let isOp = '1';
+          let isOp = 'false';
           let sStart = '';
           let sEnd = '';
           rows.forEach(r => {
-            if (r.key === 'is_open') isOp = r.value;
-            if (r.key === 'sched_start') sStart = r.value;
-            if (r.key === 'sched_end') sEnd = r.value;
+            if (r.key === `${currentSched}_is_open`) isOp = r.value;
+            if (r.key === `${currentSched}_sched_start`) sStart = r.value;
+            if (r.key === `${currentSched}_sched_end`) sEnd = r.value;
           });
 
-          const val = isOp ? String(isOp).toLowerCase() : '1';
+          const val = isOp ? String(isOp).toLowerCase() : 'false';
           const isOpenManual = val === '1' || val === 'true' || val === 'yes';
 
           let isOpenSched = false;
