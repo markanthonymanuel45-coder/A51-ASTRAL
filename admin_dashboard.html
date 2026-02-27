@@ -616,6 +616,7 @@
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R3</th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">TOTAL</th>
                   </tr>
                 </thead>
                 <tbody id="scoreboardBody">
@@ -1004,6 +1005,8 @@
           nameTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
           tr.appendChild(nameTd);
 
+          const scoreInputs = [];
+
           // helper to create editable score cells
           function addCell() {
             const td = document.createElement('td');
@@ -1014,18 +1017,55 @@
             input.type = 'number';
             input.min = '0';
             input.style.width = '44px';
-            input.style.padding = '2px 4px';
-            input.style.borderRadius = '6px';
-            input.style.border = '1px solid rgba(55,65,81,0.9)';
+            input.style.padding = '4px 8px';
+            input.style.borderRadius = '20px'; // Bilog bilog
+            input.style.border = '1px solid rgba(255,255,255,0.2)';
             input.style.background = 'rgba(15,23,42,0.95)';
             input.style.color = '#e5e7eb';
-            input.style.fontSize = '11px';
+            input.style.fontSize = '12px';
+            input.style.textAlign = 'center';
+            input.style.outline = 'none';
+            input.onfocus = () => input.style.borderColor = '#3b82f6';
+            input.onblur = () => input.style.borderColor = 'rgba(255,255,255,0.2)';
             td.appendChild(input);
             tr.appendChild(td);
+            scoreInputs.push(input);
           }
 
           // R1, PP1, R2, PP2, R3, PP3
-          addCell(); addCell(); addCell(); addCell(); addCell(); addCell();
+          for (let i = 0; i < 6; i++) addCell();
+
+          // TOTAL cell (auto-calculated)
+          const totalTd = document.createElement('td');
+          totalTd.style.padding = '4px 4px';
+          totalTd.style.textAlign = 'center';
+          totalTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+          const totalInput = document.createElement('input');
+          totalInput.type = 'number';
+          totalInput.readOnly = true;
+          totalInput.style.width = '44px';
+          totalInput.style.padding = '4px 8px';
+          totalInput.style.borderRadius = '20px'; // Bilog bilog
+          totalInput.style.border = '1px solid rgba(250,204,21,0.4)';
+          totalInput.style.background = 'rgba(250,204,21,0.05)';
+          totalInput.style.color = '#facc15';
+          totalInput.style.fontWeight = '700';
+          totalInput.style.fontSize = '12px';
+          totalInput.style.textAlign = 'center';
+          totalInput.style.outline = 'none';
+          totalTd.appendChild(totalInput);
+          tr.appendChild(totalTd);
+
+          function recompute() {
+            let sum = 0;
+            scoreInputs.forEach(inp => {
+              const val = parseInt(inp.value, 10);
+              if (!isNaN(val)) sum += val;
+            });
+            totalInput.value = sum || '';
+          }
+
+          scoreInputs.forEach(inp => inp.addEventListener('input', recompute));
 
           scoreboardBody.appendChild(tr);
         });
@@ -1229,7 +1269,7 @@
       const trs = scoreboardBody.querySelectorAll('tr');
       trs.forEach(tr => {
         const cells = tr.querySelectorAll('td');
-        if (cells.length < 8) return;
+        if (cells.length < 9) return;
         const team = cells[1].textContent.trim();
         if (!team) return;
 
@@ -1246,17 +1286,10 @@
         const pp2 = getVal(5);
         const r3 = getVal(6);
         const pp3 = getVal(7);
-
-        // Compute total
-        let rowTotal = 0;
-        [r1, pp1, r2, pp2, r3, pp3].forEach(v => {
-          if (typeof v === 'number') rowTotal += v;
-        });
+        const total = getVal(8);
 
         rows.push({
-          team,
-          r1, pp1, r2, pp2, r3, pp3,
-          total: rowTotal
+          team, r1, pp1, r2, pp2, r3, pp3, total
         });
       });
 
@@ -1294,7 +1327,7 @@
           pp2: r.pp2 === '' ? null : Number(r.pp2),
           r3: r.r3 === '' ? null : Number(r.r3),
           pp3: r.pp3 === '' ? null : Number(r.pp3),
-          total: Number(r.total),
+          total: r.total === '' ? null : Number(r.total),
         }));
         const postRes = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard`, {
           method: 'POST',
@@ -1372,6 +1405,10 @@
       }
     }, 5000);
   </script>
+</body>
+
+</html>
+</script>
 </body>
 
 </html>
