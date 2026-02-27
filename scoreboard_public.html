@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -139,6 +140,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="wrapper">
     <div class="header">
@@ -157,14 +159,14 @@
         <table>
           <thead>
             <tr>
-              <th>#</th>
+              <th>RANK</th>
               <th>Team Name</th>
               <th>R1</th>
-              <th>PP</th>
+              <th>PP1</th>
               <th>R2</th>
-              <th>PP</th>
+              <th>PP2</th>
               <th>R3</th>
-              <th>PP</th>
+              <th>PP3</th>
               <th>TOTAL</th>
             </tr>
           </thead>
@@ -221,21 +223,22 @@
 
         list.forEach((row, idx) => {
           const tr = document.createElement("tr");
-          const makeCell = (text, className) => {
+          const makeCell = (val, className) => {
             const td = document.createElement("td");
-            td.textContent = text;
+            // Convince JS to show 0 as a string "0" instead of hiding it
+            td.textContent = (val === null || val === undefined || val === '') ? "" : String(val);
             if (className) td.className = className;
             return td;
           };
-          tr.appendChild(makeCell(String(idx + 1), "rank-cell"));
-          tr.appendChild(makeCell(row.team || "—", "team-name"));
-          tr.appendChild(makeCell(row.r1 ?? ""));
-          tr.appendChild(makeCell(row.pp1 ?? ""));
-          tr.appendChild(makeCell(row.r2 ?? ""));
-          tr.appendChild(makeCell(row.pp2 ?? ""));
-          tr.appendChild(makeCell(row.r3 ?? ""));
-          tr.appendChild(makeCell(row.pp3 ?? ""));
-          tr.appendChild(makeCell(row.total ?? "", "total-cell"));
+          tr.appendChild(makeCell(idx + 1, "rank-cell"));
+          tr.appendChild(makeCell(row.team, "team-name"));
+          tr.appendChild(makeCell(row.r1));
+          tr.appendChild(makeCell(row.pp1));
+          tr.appendChild(makeCell(row.r2));
+          tr.appendChild(makeCell(row.pp2));
+          tr.appendChild(makeCell(row.r3));
+          tr.appendChild(makeCell(row.pp3));
+          tr.appendChild(makeCell(row.total, "total-cell"));
           bodyEl.appendChild(tr);
         });
 
@@ -251,5 +254,5 @@
     loadPublicScoreboard();
   </script>
 </body>
-</html>
 
+</html>
