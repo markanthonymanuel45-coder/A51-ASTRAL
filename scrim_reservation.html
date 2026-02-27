@@ -1,457 +1,549 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CODM Scrim Slot Reservation</title>
-<style>
-  body {
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(180deg, #0b0f14 0%, #05060a 100%);
-    color: #e6eef8;
-    margin: 0;
-    padding: 0;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CODM Scrim Slot Reservation</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(180deg, #0b0f14 0%, #05060a 100%);
+      color: #e6eef8;
+      margin: 0;
+      padding: 0;
+    }
 
-  .container {
-    max-width: 960px;
-    margin: 40px auto;
-    padding: 24px;
-    background: linear-gradient(180deg, #0f1720, #071019);
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-  }
+    .container {
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 24px;
+      background: linear-gradient(180deg, #0f1720, #071019);
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
 
-  h2 {
-    text-align: center;
-    font-size: 28px;
-    margin-bottom: 20px;
-    color: #2ecc71;
-    text-shadow: 0 0 6px rgba(46,204,113,0.5);
-  }
+    h2 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #2ecc71;
+      text-shadow: 0 0 6px rgba(46, 204, 113, 0.5);
+    }
 
-  .buttons {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
-  button {
-    padding: 12px 20px;
-    font-weight: 700;
-    font-size: 14px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  #mineBtn {
-    background: #2ecc71;
-    color: #0b0f14;
-    box-shadow: 0 4px 12px rgba(46,204,113,0.4);
-  }
-  #mineBtn:hover {
-    background: #27ae60;
-    transform: translateY(-2px);
-  }
+    .buttons {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
 
-  #slots {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-  }
-  .slot {
-    background: rgba(255,255,255,0.03);
-    min-height: 80px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transition: 0.2s;
-    font-weight: 600;
-    text-align: center;
-    box-shadow: inset 0 0 4px rgba(255,255,255,0.05);
-  }
-  .slot.empty {
-    background: linear-gradient(180deg, #39424a, #2c3238);
-    color: #94a3b8;
-  }
-  .slot.filled {
-    background: linear-gradient(180deg, #063a1b, #094b23);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  }
-  .slot:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-  }
-  .slot .num {
-    font-weight: 700;
-    font-size: 14px;
-  }
-  .slot .clan {
-    font-size: 16px;
-    margin-top: 6px;
-    color: inherit;
-  }
+    button {
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+    }
 
-  /* MODAL */
-  #clanModal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15,23,32,0.85);
-    backdrop-filter: blur(6px);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  #clanModalContent {
-    background: radial-gradient(circle at top, #1f2933 0%, #020617 55%);
-    padding: 20px 20px 16px;
-    border-radius: 16px;
-    width: 320px;
-    text-align: center;
-    position: relative;
-    box-shadow: 0 18px 45px rgba(15,23,42,0.9);
-    border: 1px solid rgba(148,163,184,0.4);
-  }
+    #mineBtn {
+      background: #2ecc71;
+      color: #0b0f14;
+      box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+    }
 
-  #clanModalContent h3 {
-    color: #2ecc71;
-    margin-bottom: 12px;
-  }
-  #clanInput {
-    width: 92%;
-    padding: 8px 10px;
-    border-radius: 10px;
-    border: 1px solid rgba(148,163,184,0.8);
-    background: rgba(15,23,42,0.8);
-    color: #e6eef8;
-    margin: 0 auto 10px;
-    font-size: 14px;
-    outline: none;
-    box-sizing: border-box;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
-  }
-  #clanInput::placeholder {
-    color: #64748b;
-  }
-  #clanInput:focus {
-    border-color: #2ecc71;
-    box-shadow: 0 0 0 1px rgba(46,204,113,0.45), 0 10px 30px rgba(15,23,42,0.7);
-    background: rgba(15,23,42,1);
-    transform: translateY(-1px);
-  }
-  #modalButtons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  #submitClan {
-    flex: 1;
-    background: #2ecc71;
-    color: #0b0f14;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  #cancelClan {
-    flex: 1;
-    background: #ccc;
-    color: #0b0f14;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  #submitClan, #cancelClan {
-    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  #submitClan:hover {
-    background: #27ae60;
-    transform: translateY(-1px);
-    box-shadow: 0 10px 25px rgba(46,204,113,0.4);
-  }
-  #cancelClan:hover {
-    background: #e5e7eb;
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(15,23,42,0.7);
-  }
-  #successMessage {
-    display: none;
-    margin-top: 12px;
-    color: #2ecc71;
-    font-weight: 700;
-  }
+    #mineBtn:hover {
+      background: #27ae60;
+      transform: translateY(-2px);
+    }
 
-  /* Success Popup */
-  .success-popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #063a1b;
-    border: 2px solid #2ecc71;
-    color: #fff;
-    padding: 20px 30px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 16px;
-    z-index: 2000;
-    box-shadow: 0 8px 30px rgba(46,204,113,0.4);
-    animation: popupSlideIn 0.3s ease-out;
-  }
-  @keyframes popupSlideIn {
-    from { opacity: 0; transform: translate(-50%, -60%); }
-    to { opacity: 1; transform: translate(-50%, -50%); }
-  }
+    #slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
 
-  /* Success Popup */
-  .success-popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #063a1b;
-    border: 2px solid #2ecc71;
-    color: #fff;
-    padding: 20px 30px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 16px;
-    z-index: 2000;
-    box-shadow: 0 8px 30px rgba(46,204,113,0.4);
-    animation: popupSlideIn 0.3s ease-out;
-  }
-  @keyframes popupSlideIn {
-    from { opacity: 0; transform: translate(-50%, -60%); }
-    to { opacity: 1; transform: translate(-50%, -50%); }
-  }
+    .slot {
+      background: rgba(255, 255, 255, 0.03);
+      min-height: 80px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: 0.2s;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.05);
+    }
 
-  @media(max-width:640px){
-    #slots { grid-template-columns: repeat(2, 1fr); }
-    #clanModalContent { width: 90%; }
-  }
-</style>
+    .slot.empty {
+      background: linear-gradient(180deg, #39424a, #2c3238);
+      color: #94a3b8;
+    }
+
+    .slot.filled {
+      background: linear-gradient(180deg, #063a1b, #094b23);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .slot:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .slot .num {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .slot .clan {
+      font-size: 16px;
+      margin-top: 6px;
+      color: inherit;
+    }
+
+    /* MODAL */
+    #clanModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 32, 0.85);
+      backdrop-filter: blur(6px);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #clanModalContent {
+      background: radial-gradient(circle at top, #1f2933 0%, #020617 55%);
+      padding: 20px 20px 16px;
+      border-radius: 16px;
+      width: 320px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    #clanModalContent h3 {
+      color: #2ecc71;
+      margin-bottom: 12px;
+    }
+
+    #clanInput {
+      width: 92%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.8);
+      color: #e6eef8;
+      margin: 0 auto 10px;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    }
+
+    #clanInput::placeholder {
+      color: #64748b;
+    }
+
+    #clanInput:focus {
+      border-color: #2ecc71;
+      box-shadow: 0 0 0 1px rgba(46, 204, 113, 0.45), 0 10px 30px rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 1);
+      transform: translateY(-1px);
+    }
+
+    #modalButtons {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    #submitClan {
+      flex: 1;
+      background: #2ecc71;
+      color: #0b0f14;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #cancelClan {
+      flex: 1;
+      background: #ccc;
+      color: #0b0f14;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #submitClan,
+    #cancelClan {
+      transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    #submitClan:hover {
+      background: #27ae60;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);
+    }
+
+    #cancelClan:hover {
+      background: #e5e7eb;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.7);
+    }
+
+    #successMessage {
+      display: none;
+      margin-top: 12px;
+      color: #2ecc71;
+      font-weight: 700;
+    }
+
+    /* Success Popup */
+    .success-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #063a1b;
+      border: 2px solid #2ecc71;
+      color: #fff;
+      padding: 20px 30px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      z-index: 2000;
+      box-shadow: 0 8px 30px rgba(46, 204, 113, 0.4);
+      animation: popupSlideIn 0.3s ease-out;
+    }
+
+    @keyframes popupSlideIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    /* Success Popup */
+    .success-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #063a1b;
+      border: 2px solid #2ecc71;
+      color: #fff;
+      padding: 20px 30px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      z-index: 2000;
+      box-shadow: 0 8px 30px rgba(46, 204, 113, 0.4);
+      animation: popupSlideIn 0.3s ease-out;
+    }
+
+    @keyframes popupSlideIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    @media(max-width:640px) {
+      #slots {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      #clanModalContent {
+        width: 90%;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
-  <h2>ASTRAL 51 CODM Scrim Slot Reservation</h2>
-  <div class="buttons">
-    <button id="mineBtn">MINE SLOT</button>
-  </div>
-  <div id="slots"></div>
-  <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#6b7280;">
-    <span id="statusText">Checking reservation status…</span>
-</div>
-
-<!-- MODAL -->
-<div id="clanModal">
-  <div id="clanModalContent">
-    <h3>Enter Clan Name</h3>
-    <input type="text" id="clanInput" placeholder="Clan Name">
-    <div id="modalButtons">
-      <button id="submitClan">Submit</button>
-      <button id="cancelClan">Cancel</button>
+  <div class="container">
+    <h2>ASTRAL 51 CODM Scrim Slot Reservation</h2>
+    <div class="buttons">
+      <button id="mineBtn">MINE SLOT</button>
     </div>
-    <div id="successMessage">Successfully Reserved!</div>
-  </div>
-</div>
+    <div id="slots"></div>
+    <div
+      style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#6b7280;">
+      <span id="statusText">Checking reservation status…</span>
+    </div>
 
-<script>
-const SUPABASE_URL = 'https://yzdtszfubnastllfyczs.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6ZHRzemZ1Ym5hc3RsbGZ5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNzEyOTgsImV4cCI6MjA4NzY0NzI5OH0.GJz1ouXTbi3GQZYJa0756w4CgqabT9C2EH_mW_m_5TY';
-const MAX_SLOTS = 25;
+    <!-- MODAL -->
+    <div id="clanModal">
+      <div id="clanModalContent">
+        <h3>Enter Clan Name</h3>
+        <input type="text" id="clanInput" placeholder="Clan Name">
+        <div id="modalButtons">
+          <button id="submitClan">Submit</button>
+          <button id="cancelClan">Cancel</button>
+        </div>
+        <div id="successMessage">Successfully Reserved!</div>
+      </div>
+    </div>
 
-const slotsEl = document.getElementById('slots');
-const clanModal = document.getElementById('clanModal');
-const clanInput = document.getElementById('clanInput');
-const submitClan = document.getElementById('submitClan');
-const cancelClan = document.getElementById('cancelClan');
-const successMessage = document.getElementById('successMessage');
-const mineBtn = document.getElementById('mineBtn');
-const statusText = document.getElementById('statusText');
+    <script>
+      const SUPABASE_URL = 'https://yzdtszfubnastllfyczs.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6ZHRzemZ1Ym5hc3RsbGZ5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNzEyOTgsImV4cCI6MjA4NzY0NzI5OH0.GJz1ouXTbi3GQZYJa0756w4CgqabT9C2EH_mW_m_5TY';
+      const MAX_SLOTS = 25;
 
-// Holds latest slots data from the server
-let currentSlots = [];
+      const slotsEl = document.getElementById('slots');
+      const clanModal = document.getElementById('clanModal');
+      const clanInput = document.getElementById('clanInput');
+      const submitClan = document.getElementById('submitClan');
+      const cancelClan = document.getElementById('cancelClan');
+      const successMessage = document.getElementById('successMessage');
+      const mineBtn = document.getElementById('mineBtn');
+      const statusText = document.getElementById('statusText');
 
-// Show Modal
-mineBtn.onclick = () => {
-  clanInput.value = '';
-  successMessage.style.display = 'none';
-  submitClan.disabled = false;
-  clanModal.style.display = 'flex';
-  clanInput.focus();
-}
+      // Holds latest slots data from the server
+      let currentSlots = [];
 
-// Cancel Modal
-cancelClan.onclick = () => clanModal.style.display = 'none';
-
-// Show Custom Popup
-function showPopup(message, duration = 1000) {
-  const popup = document.createElement('div');
-  popup.className = 'success-popup';
-  popup.textContent = message;
-  document.body.appendChild(popup);
-  setTimeout(() => popup.remove(), duration);
-}
-
-// Submit Clan
-submitClan.onclick = async () => {
-  const clan = clanInput.value.trim();
-  if(!clan) {
-    showPopup('Enter a Clan Name!');
-    return;
-  }
-
-  // Normalize for comparison (case-insensitive)
-  const normalizedClan = clan.toUpperCase();
-  const [normalizedTag] = normalizedClan.split(/\s+/);
-
-  // Enforce: max 3 teams per clan tag and no exact duplicate team name
-  // Use currentSlots (from last loadSlots) for validation
-  const slotsForValidation = Array.isArray(currentSlots) ? currentSlots : [];
-  if (slotsForValidation.length) {
-    const existingNames = slotsForValidation
-      .filter(s => s && s.clan)
-      .map(s => s.clan.toString().trim().toUpperCase());
-
-    // Reject exact duplicate team name
-    if (existingNames.includes(normalizedClan)) {
-      showPopup('That team name is already reserved.');
-      return;
-    }
-
-    // Count how many teams share the same first word/tag (e.g. "A51")
-    const sameTagCount = existingNames.filter(name => {
-      const [tag] = name.split(/\s+/);
-      return tag === normalizedTag;
-    }).length;
-
-    if (sameTagCount >= 3) {
-      showPopup(`Only 3 teams allowed for clan ${normalizedTag}.`);
-      return;
-    }
-  }
-  submitClan.disabled = true;
-  try {
-    // Find first empty slot from Supabase
-    const listRes = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan&order=slot_number.asc`, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-      },
-    });
-    const list = await listRes.json();
-    const emptyRow = list.find(r => !r.clan || r.clan.toString().trim() === '');
-    if (!emptyRow) {
-      showPopup('All slots full!');
-      submitClan.disabled = false;
-      return;
-    }
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${emptyRow.id}`, {
-      method: 'PATCH',
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation',
-      },
-      body: JSON.stringify({ clan }),
-    });
-    if (!res.ok) {
-      const errText = await res.text();
-      if (errText && errText.toLowerCase().includes('duplicate') || res.status === 409) {
-        showPopup('Clan already exists!');
-      } else {
-        showPopup('Something went wrong. Please try again.');
+      // Show Modal
+      mineBtn.onclick = () => {
+        clanInput.value = '';
+        successMessage.style.display = 'none';
+        submitClan.disabled = false;
+        clanModal.style.display = 'flex';
+        clanInput.focus();
       }
-      submitClan.disabled = false;
-      return;
-    }
-    showPopup('Successfully Reserved!');
-    clanInput.value = '';
-    clanModal.style.display = 'none';
-    submitClan.disabled = false;
-    loadSlots();
-  } catch (e) {
-    showPopup('Error: ' + e.message);
-    submitClan.disabled = false;
-  }
-}
 
-// Load slots from Supabase
-async function loadSlots(){
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=slot_number,clan&order=slot_number.asc`, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-      },
-    });
-    const data = await res.json();
-    // Map to { slot, clan } for existing validation logic
-    currentSlots = (Array.isArray(data) ? data : []).map(r => ({
-      slot: r.slot_number,
-      clan: r.clan || '',
-    }));
+      // Cancel Modal
+      cancelClan.onclick = () => clanModal.style.display = 'none';
 
-    slotsEl.innerHTML = '';
-    for (let i = 1; i <= MAX_SLOTS; i++) {
-      const s = currentSlots.find(x => x.slot === i);
-      const clan = s && s.clan ? String(s.clan).trim() : '';
-      const div = document.createElement('div');
-      div.className = 'slot ' + (clan ? 'filled' : 'empty');
-      div.innerHTML = `<div class="num">Slot ${i}</div><div class="clan">${clan || 'EMPTY'}</div>`;
-      slotsEl.appendChild(div);
-    }
-  } catch (e) {
-    console.error(e);
-  }
-}
+      // Show Custom Popup
+      function showPopup(message, duration = 1000) {
+        const popup = document.createElement('div');
+        popup.className = 'success-popup';
+        popup.textContent = message;
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), duration);
+      }
 
-// Auto-refresh
-loadSlots();
-setInterval(loadSlots,1000);
+      // Submit Clan
+      submitClan.onclick = async () => {
+        const clan = clanInput.value.trim();
+        if (!clan) {
+          showPopup('Enter a Clan Name!');
+          return;
+        }
 
-// Check reservation open/closed status from Supabase config
-async function checkStatus(){
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.is_open&select=value`, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-      },
-    });
-    const rows = await res.json();
-    const val = (rows && rows[0] && rows[0].value) ? String(rows[0].value).toLowerCase() : '1';
-    const isOpen = val === '1' || val === 'true' || val === 'yes';
-    if (isOpen) {
-      mineBtn.disabled = false;
-      mineBtn.textContent = 'MINE SLOT';
-      statusText.textContent = 'Reservation status: OPEN';
-      statusText.style.color = '#4ade80';
-    } else {
-      mineBtn.disabled = true;
-      mineBtn.textContent = 'RESERVATION CLOSED';
-      statusText.textContent = 'Reservation status: CLOSED (wait for admin to open)';
-      statusText.style.color = '#f97316';
-    }
-  } catch (e) {
-    console.error(e);
-    statusText.textContent = 'Unable to check status.';
-    statusText.style.color = '#f97316';
-  }
-}
+        // Normalize for comparison (case-insensitive)
+        const normalizedClan = clan.toUpperCase();
+        const [normalizedTag] = normalizedClan.split(/\s+/);
 
-checkStatus();
-</script>
+        // Enforce: max 3 teams per clan tag and no exact duplicate team name
+        // Use currentSlots (from last loadSlots) for validation
+        const slotsForValidation = Array.isArray(currentSlots) ? currentSlots : [];
+        if (slotsForValidation.length) {
+          const existingNames = slotsForValidation
+            .filter(s => s && s.clan)
+            .map(s => s.clan.toString().trim().toUpperCase());
+
+          // Reject exact duplicate team name
+          if (existingNames.includes(normalizedClan)) {
+            showPopup('That team name is already reserved.');
+            return;
+          }
+
+          // Count how many teams share the same first word/tag (e.g. "A51")
+          const sameTagCount = existingNames.filter(name => {
+            const [tag] = name.split(/\s+/);
+            return tag === normalizedTag;
+          }).length;
+
+          if (sameTagCount >= 3) {
+            showPopup(`Only 3 teams allowed for clan ${normalizedTag}.`);
+            return;
+          }
+        }
+        submitClan.disabled = true;
+        try {
+          // Find first empty slot from Supabase
+          const listRes = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan&order=slot_number.asc`, {
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+            },
+          });
+          const list = await listRes.json();
+          const emptyRow = list.find(r => !r.clan || r.clan.toString().trim() === '');
+          if (!emptyRow) {
+            showPopup('All slots full!');
+            submitClan.disabled = false;
+            return;
+          }
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${emptyRow.id}`, {
+            method: 'PATCH',
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify({ clan }),
+          });
+          if (!res.ok) {
+            const errText = await res.text();
+            if (errText && errText.toLowerCase().includes('duplicate') || res.status === 409) {
+              showPopup('Clan already exists!');
+            } else {
+              showPopup('Something went wrong. Please try again.');
+            }
+            submitClan.disabled = false;
+            return;
+          }
+          showPopup('Successfully Reserved!');
+          clanInput.value = '';
+          clanModal.style.display = 'none';
+          submitClan.disabled = false;
+          loadSlots();
+        } catch (e) {
+          showPopup('Error: ' + e.message);
+          submitClan.disabled = false;
+        }
+      }
+
+      // Load slots from Supabase
+      async function loadSlots() {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=slot_number,clan&order=slot_number.asc`, {
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+            },
+          });
+          const data = await res.json();
+          // Map to { slot, clan } for existing validation logic
+          currentSlots = (Array.isArray(data) ? data : []).map(r => ({
+            slot: r.slot_number,
+            clan: r.clan || '',
+          }));
+
+          slotsEl.innerHTML = '';
+          for (let i = 1; i <= MAX_SLOTS; i++) {
+            const s = currentSlots.find(x => x.slot === i);
+            const clan = s && s.clan ? String(s.clan).trim() : '';
+            const div = document.createElement('div');
+            div.className = 'slot ' + (clan ? 'filled' : 'empty');
+            div.innerHTML = `<div class="num">Slot ${i}</div><div class="clan">${clan || 'EMPTY'}</div>`;
+            slotsEl.appendChild(div);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Auto-refresh
+      loadSlots();
+      setInterval(loadSlots, 1000);
+
+      function formatTime(t24) {
+        if (!t24) return '';
+        const [h, m] = t24.split(':');
+        let hh = parseInt(h, 10);
+        const ampm = hh >= 12 ? 'PM' : 'AM';
+        hh = hh % 12 || 12;
+        return `${hh}:${m} ${ampm}`;
+      }
+
+      // Check reservation open/closed status from Supabase config
+      async function checkStatus() {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(is_open,sched_start,sched_end)&select=key,value`, {
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+            },
+          });
+          const rows = await res.json();
+
+          let isOp = '1';
+          let sStart = '';
+          let sEnd = '';
+          rows.forEach(r => {
+            if (r.key === 'is_open') isOp = r.value;
+            if (r.key === 'sched_start') sStart = r.value;
+            if (r.key === 'sched_end') sEnd = r.value;
+          });
+
+          const val = isOp ? String(isOp).toLowerCase() : '1';
+          const isOpenManual = val === '1' || val === 'true' || val === 'yes';
+
+          let isOpenSched = false;
+          if (sStart && sEnd) {
+            const now = new Date();
+            const currentHMs = now.getHours() * 60 + now.getMinutes();
+
+            const [sh, sm] = sStart.split(':').map(Number);
+            const startMs = sh * 60 + sm;
+
+            const [eh, em] = sEnd.split(':').map(Number);
+            const endMs = eh * 60 + em;
+
+            if (startMs <= endMs) {
+              isOpenSched = currentHMs >= startMs && currentHMs <= endMs;
+            } else {
+              // Schedule crosses midnight
+              isOpenSched = currentHMs >= startMs || currentHMs <= endMs;
+            }
+          }
+
+          const isOpen = isOpenManual || isOpenSched;
+
+          if (isOpen) {
+            mineBtn.disabled = false;
+            mineBtn.textContent = 'MINE SLOT';
+            let closeMsg = 'OPEN';
+            if (sEnd) {
+              closeMsg += ` (Closes at ${formatTime(sEnd)})`;
+            }
+            statusText.textContent = 'Reservation status: ' + closeMsg;
+            statusText.style.color = '#4ade80';
+          } else {
+            mineBtn.disabled = true;
+            mineBtn.textContent = 'RESERVATION CLOSED';
+            statusText.textContent = 'Reservation status: CLOSED' + (sStart ? ` (Opens at ${formatTime(sStart)})` : ' (wait for admin to open)');
+            statusText.style.color = '#f97316';
+          }
+        } catch (e) {
+          console.error(e);
+          statusText.textContent = 'Unable to check status.';
+          statusText.style.color = '#f97316';
+        }
+      }
+
+      checkStatus();
+      setInterval(checkStatus, 10000);
+    </script>
 
 </body>
+
 </html>
