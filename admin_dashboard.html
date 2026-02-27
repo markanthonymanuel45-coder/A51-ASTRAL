@@ -611,11 +611,11 @@
                     <th style="text-align:left; padding:6px 8px; border-bottom:1px solid rgba(55,65,81,0.9);">Team Name
                     </th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R1</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP1</th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R2</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP2</th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R3</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP3</th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">TOTAL</th>
                   </tr>
                 </thead>
@@ -1014,15 +1014,14 @@
             td.style.textAlign = 'center';
             td.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
             const input = document.createElement('input');
-            input.type = 'number';
-            input.min = '0';
-            input.style.width = '44px';
-            input.style.padding = '4px 8px';
+            input.type = 'text'; // Changed to text to allow "NO SHOW"
+            input.style.width = '60px'; // Slightly wider for text
+            input.style.padding = '4px 4px';
             input.style.borderRadius = '20px'; // Bilog bilog
             input.style.border = '1px solid rgba(255,255,255,0.2)';
             input.style.background = 'rgba(15,23,42,0.95)';
             input.style.color = '#e5e7eb';
-            input.style.fontSize = '12px';
+            input.style.fontSize = '10px'; // Smaller font for longer text
             input.style.textAlign = 'center';
             input.style.outline = 'none';
             input.onfocus = () => input.style.borderColor = '#3b82f6';
@@ -1041,16 +1040,16 @@
           totalTd.style.textAlign = 'center';
           totalTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
           const totalInput = document.createElement('input');
-          totalInput.type = 'number';
-          totalInput.readOnly = true;
-          totalInput.style.width = '44px';
-          totalInput.style.padding = '4px 8px';
-          totalInput.style.borderRadius = '20px'; // Bilog bilog
+          totalInput.type = 'text'; // Keep consistent with text cells
+          totalInput.readOnly = false; // Pinayagan ulit na mag-manual type sa Total box
+          totalInput.style.width = '60px';
+          totalInput.style.padding = '4px 4px';
+          totalInput.style.borderRadius = '20px';
           totalInput.style.border = '1px solid rgba(250,204,21,0.4)';
           totalInput.style.background = 'rgba(250,204,21,0.05)';
           totalInput.style.color = '#facc15';
           totalInput.style.fontWeight = '700';
-          totalInput.style.fontSize = '12px';
+          totalInput.style.fontSize = '11px';
           totalInput.style.textAlign = 'center';
           totalInput.style.outline = 'none';
           totalTd.appendChild(totalInput);
@@ -1058,14 +1057,36 @@
 
           function recompute() {
             let sum = 0;
+            let hasNumbers = false;
+            let hasNoShow = false;
+
             scoreInputs.forEach(inp => {
-              const val = parseInt(inp.value, 10);
-              if (!isNaN(val)) sum += val;
+              const raw = inp.value.trim().toUpperCase();
+              if (raw === '') return;
+
+              const val = parseInt(raw, 10);
+              if (!isNaN(val)) {
+                sum += val;
+                hasNumbers = true;
+              } else if (raw.includes('NS') || raw.includes('SHOW') || raw.includes('VOID') || raw === 'N/S') {
+                hasNoShow = true;
+              }
             });
-            totalInput.value = sum || '';
+
+            // Bagong priority: unahin ang total points (hasNumbers)
+            if (hasNumbers) {
+              totalInput.value = sum;
+            } else if (hasNoShow) {
+              totalInput.value = '0';
+            } else {
+              totalInput.value = '';
+            }
           }
 
-          scoreInputs.forEach(inp => inp.addEventListener('input', recompute));
+          scoreInputs.forEach(inp => {
+            inp.addEventListener('input', recompute);
+            inp.addEventListener('change', recompute);
+          });
 
           scoreboardBody.appendChild(tr);
         });
@@ -1276,8 +1297,7 @@
         const getVal = (idx) => {
           const input = cells[idx] && cells[idx].querySelector('input');
           if (!input || !input.value) return '';
-          const n = parseInt(input.value, 10);
-          return isNaN(n) ? '' : n;
+          return input.value.trim(); // Return raw text instead of forcing number
         };
 
         const r1 = getVal(2);
@@ -1321,13 +1341,13 @@
         }
         const payload = rows.map(r => ({
           team: r.team,
-          r1: r.r1 === '' ? null : Number(r.r1),
-          pp1: r.pp1 === '' ? null : Number(r.pp1),
-          r2: r.r2 === '' ? null : Number(r.r2),
-          pp2: r.pp2 === '' ? null : Number(r.pp2),
-          r3: r.r3 === '' ? null : Number(r.r3),
-          pp3: r.pp3 === '' ? null : Number(r.pp3),
-          total: r.total === '' ? null : Number(r.total),
+          r1: (r.r1 === '' || r.r1 === null) ? null : String(r.r1),
+          pp1: (r.pp1 === '' || r.pp1 === null) ? null : String(r.pp1),
+          r2: (r.r2 === '' || r.r2 === null) ? null : String(r.r2),
+          pp2: (r.pp2 === '' || r.pp2 === null) ? null : String(r.pp2),
+          r3: (r.r3 === '' || r.r3 === null) ? null : String(r.r3),
+          pp3: (r.pp3 === '' || r.pp3 === null) ? null : String(r.pp3),
+          total: (r.total === '' || r.total === null) ? null : String(r.total),
         }));
         const postRes = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard`, {
           method: 'POST',
@@ -1343,7 +1363,9 @@
           }).catch(() => { });
           showAdminToast('Scoreboard saved for public view.', 'success');
         } else {
-          showAdminToast('Failed to save scoreboard.', 'error');
+          const err = await postRes.json();
+          console.error('Supabase save error:', err);
+          showAdminToast('Failed: ' + (err.message || 'Check DB column types'), 'error');
         }
       } catch (e) {
         console.error(e);
