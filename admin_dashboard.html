@@ -607,6 +607,7 @@
               <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:520px;">
                 <thead>
                   <tr style="background:rgba(15,23,42,0.95);">
+                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">Slot</th>
                     <th style="text-align:left; padding:6px 8px; border-bottom:1px solid rgba(55,65,81,0.9);">Team Name
                     </th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R1</th>
@@ -615,7 +616,6 @@
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R3</th>
                     <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">TOTAL</th>
                   </tr>
                 </thead>
                 <tbody id="scoreboardBody">
@@ -986,36 +986,26 @@
       // ---- Scoreboard rows (team list auto from scrim slots) ----
       if (scoreboardBody) {
         scoreboardBody.innerHTML = '';
-        const teamNames = filled
-          .map(s => s.clan)
-          .filter(Boolean);
 
-        // unique team names, keep original order
-        const seen = new Set();
-        const uniqueTeams = [];
-        for (const name of teamNames) {
-          const key = name.trim();
-          if (!key || seen.has(key.toUpperCase())) continue;
-          seen.add(key.toUpperCase());
-          uniqueTeams.push(key);
-        }
-
-        uniqueTeams.forEach(name => {
+        filled.forEach(s => {
           const tr = document.createElement('tr');
           tr.style.background = 'rgba(15,23,42,0.85)';
 
+          const slotTd = document.createElement('td');
+          slotTd.textContent = s.slot;
+          slotTd.style.padding = '5px 8px';
+          slotTd.style.textAlign = 'center';
+          slotTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+          tr.appendChild(slotTd);
+
           const nameTd = document.createElement('td');
-          nameTd.textContent = name;
+          nameTd.textContent = s.clan;
           nameTd.style.padding = '5px 8px';
           nameTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
-
           tr.appendChild(nameTd);
 
-          // keep refs to score inputs so we can auto-total
-          const scoreInputs = [];
-
           // helper to create editable score cells
-          function addCell(isTotal = false) {
+          function addCell() {
             const td = document.createElement('td');
             td.style.padding = '4px 4px';
             td.style.textAlign = 'center';
@@ -1030,29 +1020,12 @@
             input.style.background = 'rgba(15,23,42,0.95)';
             input.style.color = '#e5e7eb';
             input.style.fontSize = '11px';
-            input.dataset.role = isTotal ? 'total' : 'score';
             td.appendChild(input);
             tr.appendChild(td);
-            scoreInputs.push(input);
           }
 
-          // R1, PP1, R2, PP2, R3, PP3, TOTAL
-          addCell(); addCell(); addCell(); addCell(); addCell(); addCell(); addCell(true);
-
-          // auto-calc total whenever any score cell changes
-          const totalInput = scoreInputs[scoreInputs.length - 1];
-          function recomputeTotal() {
-            let sum = 0;
-            for (let i = 0; i < scoreInputs.length - 1; i++) {
-              const v = parseInt(scoreInputs[i].value, 10);
-              if (!isNaN(v)) sum += v;
-            }
-            totalInput.value = sum ? String(sum) : '';
-          }
-          scoreInputs.forEach((inp, idx) => {
-            if (idx === scoreInputs.length - 1) return; // skip total itself
-            inp.addEventListener('input', recomputeTotal);
-          });
+          // R1, PP1, R2, PP2, R3, PP3
+          addCell(); addCell(); addCell(); addCell(); addCell(); addCell();
 
           scoreboardBody.appendChild(tr);
         });
@@ -1256,8 +1229,8 @@
       const trs = scoreboardBody.querySelectorAll('tr');
       trs.forEach(tr => {
         const cells = tr.querySelectorAll('td');
-        if (!cells.length) return;
-        const team = cells[0].textContent.trim();
+        if (cells.length < 8) return;
+        const team = cells[1].textContent.trim();
         if (!team) return;
 
         const getVal = (idx) => {
@@ -1267,15 +1240,23 @@
           return isNaN(n) ? '' : n;
         };
 
+        const r1 = getVal(2);
+        const pp1 = getVal(3);
+        const r2 = getVal(4);
+        const pp2 = getVal(5);
+        const r3 = getVal(6);
+        const pp3 = getVal(7);
+
+        // Compute total
+        let rowTotal = 0;
+        [r1, pp1, r2, pp2, r3, pp3].forEach(v => {
+          if (typeof v === 'number') rowTotal += v;
+        });
+
         rows.push({
           team,
-          r1: getVal(1),
-          pp1: getVal(2),
-          r2: getVal(3),
-          pp2: getVal(4),
-          r3: getVal(5),
-          pp3: getVal(6),
-          total: getVal(7),
+          r1, pp1, r2, pp2, r3, pp3,
+          total: rowTotal
         });
       });
 
@@ -1313,7 +1294,7 @@
           pp2: r.pp2 === '' ? null : Number(r.pp2),
           r3: r.r3 === '' ? null : Number(r.r3),
           pp3: r.pp3 === '' ? null : Number(r.pp3),
-          total: r.total === '' ? null : Number(r.total),
+          total: Number(r.total),
         }));
         const postRes = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard`, {
           method: 'POST',
