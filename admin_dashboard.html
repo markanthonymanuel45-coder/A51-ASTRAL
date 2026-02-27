@@ -724,10 +724,54 @@
 
     let latestSlots = [];
     let adminPopupResolver = null;
+    let currentSched = '8pm'; // DEFAULT VIEW
 
     function normalize(str) {
       return (str || '').toString().trim().toLowerCase();
     }
+
+    // --- SCHEDULE SWITCHER UI ---
+    function initSchedSwitcher() {
+      const headerBlock = document.querySelector('.title-block');
+      if (!headerBlock) return;
+
+      const switcherDiv = document.createElement('div');
+      switcherDiv.style.margin = '10px 0 0 0';
+      switcherDiv.style.display = 'flex';
+      switcherDiv.style.gap = '8px';
+
+      const btn8 = document.createElement('button');
+      btn8.className = 'btn btn-update';
+      btn8.textContent = '8:00 PM View';
+      btn8.style.padding = '5px 12px';
+
+      const btn10 = document.createElement('button');
+      btn10.className = 'btn btn-ghost';
+      btn10.textContent = '10:00 PM View';
+      btn10.style.padding = '5px 12px';
+
+      const updateActive = () => {
+        if (currentSched === '8pm') {
+          btn8.className = 'btn btn-update';
+          btn10.className = 'btn btn-ghost';
+        } else {
+          btn10.className = 'btn btn-update';
+          btn8.className = 'btn btn-ghost';
+        }
+        if (typeof viewSubtitle !== 'undefined') {
+          viewSubtitle.textContent = `Managing ${currentSched.toUpperCase()} Scrim data.`;
+        }
+      };
+
+      btn8.onclick = () => { currentSched = '8pm'; updateActive(); loadAdminSlots(); checkGlobalStatus(); };
+      btn10.onclick = () => { currentSched = '10pm'; updateActive(); loadAdminSlots(); checkGlobalStatus(); };
+
+      switcherDiv.appendChild(btn8);
+      switcherDiv.appendChild(btn10);
+      headerBlock.appendChild(switcherDiv);
+    }
+    // Delay initialization to ensure DOM is ready
+    setTimeout(initSchedSwitcher, 100);
 
     function showAdminToast(message, type = 'info') {
       const toast = document.createElement('div');
@@ -783,12 +827,17 @@
 
     async function loadAdminSlots() {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan&order=slot_number.asc`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan,schedule_type&schedule_type=eq.${currentSched}&order=slot_number.asc`, {
           headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         });
         const data = await res.json();
         const list = Array.isArray(data) ? data : [];
-        latestSlots = list.map(r => ({ id: r.id, slot: r.slot_number, clan: r.clan || '' }));
+        latestSlots = list.map(r => ({
+          id: r.id,
+          slot: r.slot_number,
+          clan: r.clan || '',
+          isFilled: !!(r.clan && r.clan.trim())
+        }));
         renderView();
       } catch (e) {
         console.error(e);
@@ -805,32 +854,29 @@
       return `${hh}:${m} ${ampm}`;
     }
 
-    async function refreshOpenStatus() {
+    async function checkGlobalStatus() {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(is_open,sched_start,sched_end)&select=key,value`, {
+        const keys = [`${currentSched}_is_open`, `${currentSched}_sched_start`, `${currentSched}_sched_end`].join(',');
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(${keys})&select=key,value`, {
           headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         });
         const rows = await res.json();
-        let isOp = '1';
-        let sStart = '';
-        let sEnd = '';
+        let isOp = 'false', sStart = '', sEnd = '';
         rows.forEach(r => {
-          if (r.key === 'is_open') isOp = r.value;
-          if (r.key === 'sched_start') sStart = r.value;
-          if (r.key === 'sched_end') sEnd = r.value;
+          if (r.key === `${currentSched}_is_open`) isOp = r.value;
+          if (r.key === `${currentSched}_sched_start`) sStart = r.value;
+          if (r.key === `${currentSched}_sched_end`) sEnd = r.value;
         });
 
-        const val = isOp ? String(isOp).toLowerCase() : '1';
+        const val = isOp ? String(isOp).toLowerCase() : 'false';
         const isOpenManual = val === '1' || val === 'true' || val === 'yes';
 
         let isOpenSched = false;
         if (sStart && sEnd) {
           const now = new Date();
           const currentHMs = now.getHours() * 60 + now.getMinutes();
-
           const [sh, sm] = sStart.split(':').map(Number);
           const startMs = sh * 60 + sm;
-
           const [eh, em] = sEnd.split(':').map(Number);
           const endMs = eh * 60 + em;
 
@@ -842,7 +888,6 @@
         }
 
         const isOpen = isOpenManual || isOpenSched;
-
         let resStatusText = isOpen ? 'OPEN' : 'CLOSED';
         if (isOpen && sEnd && isOpenSched) {
           resStatusText += ` (Closes at ${formatTime(sEnd)})`;
@@ -851,55 +896,68 @@
         reservationStatusLabel.textContent = resStatusText;
         reservationStatusLabel.style.color = isOpen ? '#4ade80' : '#f97316';
 
-        // Let admin override the manual toggle
         toggleOpenBtn.textContent = isOpenManual ? 'Close manual toggle' : 'Open manual toggle';
-        // we'll store the literal truth of is_open on a data attr so toggle logic knows what to flip
         toggleOpenBtn.dataset.currentVal = isOpenManual ? 'open' : 'closed';
 
         if (sStart && sEnd) {
           scheduleStatusLabel.textContent = `${formatTime(sStart)} - ${formatTime(sEnd)}`;
           scheduleStatusLabel.style.color = '#bfdbfe';
-          schedStartTime.value = sStart;
-          schedEndTime.value = sEnd;
         } else {
           scheduleStatusLabel.textContent = 'None';
           scheduleStatusLabel.style.color = '#9ca3af';
-          schedStartTime.value = '';
-          schedEndTime.value = '';
         }
       } catch (e) {
         console.error(e);
         reservationStatusLabel.textContent = 'Unknown';
-        reservationStatusLabel.style.color = '#f97316';
-        showAdminToast('Unable to fetch reservation status.', 'error');
+        showAdminToast('Unable to fetch status.', 'error');
       }
     }
 
-    scheduleBtn.addEventListener('click', () => { schedulePopup.style.display = 'flex'; });
-    schedulePopupCancel.addEventListener('click', () => { schedulePopup.style.display = 'none'; });
-
-    async function updateSchedConfig(start, end) {
+    scheduleBtn.onclick = async () => {
       try {
-        const updates = [
-          { key: 'sched_start', value: start },
-          { key: 'sched_end', value: end }
-        ];
-        const promises = updates.map(u => {
-          return fetch(`${SUPABASE_URL}/rest/v1/config`, {
-            method: 'POST',
-            headers: { ...supabaseHeaders(), Prefer: 'resolution=merge-duplicates' },
-            body: JSON.stringify([u]),
-          });
+        const keys = [`${currentSched}_sched_start`, `${currentSched}_sched_end`].join(',');
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(${keys})&select=key,value`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         });
-        await Promise.all(promises);
-        await refreshOpenStatus();
+        const data = await res.json();
+        schedStartTime.value = data.find(r => r.key === `${currentSched}_sched_start`)?.value || '';
+        schedEndTime.value = data.find(r => r.key === `${currentSched}_sched_end`)?.value || '';
+        schedulePopup.style.display = 'flex';
+      } catch (e) { showAdminToast("Failed to fetch schedule.", 'error'); }
+    };
+
+    schedulePopupSave.onclick = async () => {
+      const s = schedStartTime.value;
+      const e = schedEndTime.value;
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${currentSched}_sched_start`, {
+          method: 'PATCH', headers: supabaseHeaders(), body: JSON.stringify({ value: s })
+        });
+        await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${currentSched}_sched_end`, {
+          method: 'PATCH', headers: supabaseHeaders(), body: JSON.stringify({ value: e })
+        });
+        showAdminToast(`${currentSched.toUpperCase()} schedule saved.`, 'success');
         schedulePopup.style.display = 'none';
-        showAdminToast('Schedule updated.', 'success');
-      } catch (e) {
-        console.error(e);
-        showAdminToast('Error updating schedule.', 'error');
-      }
-    }
+        checkGlobalStatus();
+      } catch (err) { showAdminToast("Failed to save schedule.", 'error'); }
+    };
+
+    schedulePopupClear.onclick = async () => {
+      if (!confirm(`Clear schedule timer for ${currentSched.toUpperCase()}?`)) return;
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${currentSched}_sched_start`, {
+          method: 'PATCH', headers: supabaseHeaders(), body: JSON.stringify({ value: '' })
+        });
+        await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${currentSched}_sched_end`, {
+          method: 'PATCH', headers: supabaseHeaders(), body: JSON.stringify({ value: '' })
+        });
+        showAdminToast("Timer cleared.", 'success');
+        schedulePopup.style.display = 'none';
+        checkGlobalStatus();
+      } catch (err) { }
+    };
+
+    schedulePopupCancel.onclick = () => schedulePopup.style.display = 'none';
 
     schedulePopupSave.addEventListener('click', async () => {
       if (!schedStartTime.value || !schedEndTime.value) {
@@ -1280,136 +1338,63 @@
       }
     });
 
-    saveScoreboardBtn.addEventListener('click', async () => {
-      if (!scoreboardBody) {
-        showAdminToast('No scoreboard table found.', 'error');
-        return;
-      }
-
+    saveScoreboardBtn.onclick = async () => {
       const rows = [];
-      const trs = scoreboardBody.querySelectorAll('tr');
-      trs.forEach(tr => {
+      scoreboardBody.querySelectorAll('tr').forEach(tr => {
         const cells = tr.querySelectorAll('td');
-        if (cells.length < 9) return;
-        const team = cells[1].textContent.trim();
-        if (!team) return;
-
-        const getVal = (idx) => {
-          const input = cells[idx] && cells[idx].querySelector('input');
-          if (!input || !input.value) return '';
-          return input.value.trim(); // Return raw text instead of forcing number
-        };
-
-        const r1 = getVal(2);
-        const pp1 = getVal(3);
-        const r2 = getVal(4);
-        const pp2 = getVal(5);
-        const r3 = getVal(6);
-        const pp3 = getVal(7);
-        const total = getVal(8);
-
+        if (cells.length < 8) return;
+        const team = cells[0].textContent;
+        const getVal = (idx) => cells[idx].querySelector('input')?.value.trim() || '';
         rows.push({
-          team, r1, pp1, r2, pp2, r3, pp3, total
+          team, r1: getVal(1), pp1: getVal(2), r2: getVal(3), pp2: getVal(4), r3: getVal(5), pp3: getVal(6), total: getVal(7),
+          schedule_type: currentSched
         });
       });
 
-      if (!rows.length) {
-        showAdminToast('No teams to save.', 'error');
-        return;
-      }
-
-      const { confirmed } = await openAdminPopup({
-        title: 'Save scoreboard',
-        message: 'Save the current scoreboard for public view?',
-        requireInput: false,
-        confirmText: 'Save',
-        cancelText: 'Cancel',
-      });
-      if (!confirmed) return;
-
+      if (!rows.length) return showAdminToast("Nothing to save.", 'info');
       try {
-        const listRes = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?select=id`, {
-          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?schedule_type=eq.${currentSched}`, {
+          method: 'DELETE', headers: supabaseHeaders()
         });
-        const existing = await listRes.json();
-        if (Array.isArray(existing) && existing.length > 0) {
-          const ids = existing.map(r => r.id).join(',');
-          await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?id=in.(${ids})`, {
-            method: 'DELETE',
-            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-          });
-        }
-        const payload = rows.map(r => ({
-          team: r.team,
-          r1: (r.r1 === '' || r.r1 === null) ? null : String(r.r1),
-          pp1: (r.pp1 === '' || r.pp1 === null) ? null : String(r.pp1),
-          r2: (r.r2 === '' || r.r2 === null) ? null : String(r.r2),
-          pp2: (r.pp2 === '' || r.pp2 === null) ? null : String(r.pp2),
-          r3: (r.r3 === '' || r.r3 === null) ? null : String(r.r3),
-          pp3: (r.pp3 === '' || r.pp3 === null) ? null : String(r.pp3),
-          total: (r.total === '' || r.total === null) ? null : String(r.total),
-        }));
-        const postRes = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard`, {
-          method: 'POST',
-          headers: supabaseHeaders(),
-          body: JSON.stringify(payload),
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard`, {
+          method: 'POST', headers: supabaseHeaders(), body: JSON.stringify(rows)
         });
-        if (postRes.ok) {
-          const gameDate = new Date().toISOString().slice(0, 10);
-          await fetch(`${SUPABASE_URL}/rest/v1/config`, {
+        if (res.ok) {
+          showAdminToast(`${currentSched.toUpperCase()} Scoreboard Saved!`, 'success');
+          fetch('https://api.github.com/repos/markanthonymanuel45-coder/A51-ASTRAL/dispatches', {
             method: 'POST',
-            headers: { ...supabaseHeaders(), Prefer: 'resolution=merge-duplicates' },
-            body: JSON.stringify([{ key: 'scoreboard_date', value: gameDate }]),
+            headers: { Authorization: 'token ghp_82233827382', Accept: 'application/vnd.github.v3+json' },
+            body: JSON.stringify({ event_type: 'scoreboard_updated' })
           }).catch(() => { });
-          showAdminToast('Scoreboard saved for public view.', 'success');
-        } else {
-          const err = await postRes.json();
-          console.error('Supabase save error:', err);
-          showAdminToast('Failed: ' + (err.message || 'Check DB column types'), 'error');
         }
-      } catch (e) {
-        console.error(e);
-        showAdminToast('Error while saving scoreboard.', 'error');
-      }
-    });
+      } catch (e) { showAdminToast("Save failed.", 'error'); }
+    };
 
     toggleOpenBtn.addEventListener('click', async () => {
       const isCurrentlyManualOpen = toggleOpenBtn.dataset.currentVal === 'open';
       const makeOpen = !isCurrentlyManualOpen;
       const { confirmed } = await openAdminPopup({
-        title: makeOpen ? 'Open reservations manually' : 'Close reservations manually',
-        message: makeOpen ? 'Open reservations so players can mine slots?' : 'Close reservations?',
+        title: makeOpen ? `Open ${currentSched.toUpperCase()} manually` : `Close ${currentSched.toUpperCase()} manually`,
+        message: makeOpen ? `Open reservations for ${currentSched.toUpperCase()}?` : `Close reservations for ${currentSched.toUpperCase()}?`,
         requireInput: false,
         confirmText: makeOpen ? 'Open' : 'Close',
         cancelText: 'Cancel'
       });
       if (!confirmed) return;
       try {
-        const value = makeOpen ? '1' : '0';
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.is_open`, {
+        const value = makeOpen ? 'true' : 'false';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${currentSched}_is_open`, {
           method: 'PATCH',
           headers: supabaseHeaders(),
           body: JSON.stringify({ value }),
         });
         if (res.ok) {
-          await refreshOpenStatus();
-          showAdminToast('Reservations are now ' + (makeOpen ? 'OPEN' : 'CLOSED') + '.', 'success');
-        } else {
-          const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/config`, {
-            method: 'POST',
-            headers: { ...supabaseHeaders(), Prefer: 'resolution=merge-duplicates' },
-            body: JSON.stringify([{ key: 'is_open', value }]),
-          });
-          if (upsertRes.ok) {
-            await refreshOpenStatus();
-            showAdminToast('Reservations are now ' + (makeOpen ? 'OPEN' : 'CLOSED') + '.', 'success');
-          } else {
-            showAdminToast('Failed to update status.', 'error');
-          }
+          await checkGlobalStatus();
+          showAdminToast(`${currentSched.toUpperCase()} status updated.`, 'success');
         }
       } catch (e) {
         console.error(e);
-        showAdminToast('Error while updating reservation status.', 'error');
+        showAdminToast('Error updating status.', 'error');
       }
     });
 
@@ -1418,14 +1403,15 @@
 
     setActiveView('scrim');
     loadAdminSlots();
-    refreshOpenStatus();
+    checkGlobalStatus();
 
-    // Auto-refresh scrim slots every 5 seconds so admin sees new mines
+    // Auto-refresh scrim slots every 8 seconds so admin sees new mines
     setInterval(() => {
       if (scrimView.style.display !== 'none') {
         loadAdminSlots();
       }
-    }, 5000);
+    }, 8000);
+    setInterval(checkGlobalStatus, 15000);
   </script>
 </body>
 
