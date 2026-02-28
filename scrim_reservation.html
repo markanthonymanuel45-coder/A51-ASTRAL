@@ -492,6 +492,7 @@
               Authorization: `Bearer ${SUPABASE_KEY}`,
             },
           });
+          if (!res.ok) throw new Error('Network response was not ok');
           const rows = await res.json();
 
           let isOp = 'false';
@@ -544,7 +545,7 @@
           }
         } catch (e) {
           console.error(e);
-          statusText.textContent = 'Unable to check status.';
+          statusText.textContent = 'Status error: ' + e.message;
           statusText.style.color = '#f97316';
         }
       }
