@@ -143,6 +143,8 @@
         errorMsg.textContent = 'Incorrect admin key.';
         return;
       }
+      // Clear any legacy localStorage to prevent bypass
+      localStorage.removeItem('codmAdminAuth');
       // mark as logged in for this session only
       sessionStorage.setItem('codmAdminAuth', '1');
       errorMsg.textContent = '';
