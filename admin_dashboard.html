@@ -7,6 +7,9 @@
   <title>CODM Scrim Admin Dashboard</title>
   <script>
     // --- AUTHENTICATION GUARD ---
+    // Clear legacy localStorage if it exists to force new session-only auth
+    localStorage.removeItem('codmAdminAuth');
+
     // Using sessionStorage so the login is cleared when the tab/browser is closed.
     if (sessionStorage.getItem('codmAdminAuth') !== '1') {
       window.location.href = 'admin_login.html';
