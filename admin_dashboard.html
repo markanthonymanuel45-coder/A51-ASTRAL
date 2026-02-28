@@ -688,6 +688,12 @@
                 <div class="metric-pill">
                   Teams shown here are pulled automatically from the scrim slots.
                 </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <label for="scoreboardDatePicker" style="font-size: 11px; color: #9ca3af; white-space: nowrap;">Event
+                    Date:</label>
+                  <input type="date" id="scoreboardDatePicker"
+                    style="padding: 4px 6px; border-radius: 6px; border: 1px solid rgba(148,163,184,0.5); background: rgba(15,23,42,0.9); color: #e5e7eb; font-size: 11px; width: 110px; outline: none;">
+                </div>
                 <button id="saveScoreboardBtn" class="btn btn-ghost" style="font-size:11px; padding:6px 10px;">
                   Save scoreboard
                 </button>
@@ -809,6 +815,7 @@
     const saveScoreboardBtn = document.getElementById('saveScoreboardBtn');
     const copyTopTeamsBtn = document.getElementById('copyTopTeamsBtn');
     const saveAsImageBtn = document.getElementById('saveAsImageBtn');
+    const scoreboardDatePicker = document.getElementById('scoreboardDatePicker');
 
     const scheduleStatusLabel = document.getElementById('scheduleStatusLabel');
     const scheduleBtn = document.getElementById('scheduleBtn');
@@ -969,7 +976,6 @@
 
     async function checkGlobalStatus() {
       try {
-        const keys = [`${currentSched}_is_open`, `${currentSched}_sched_start`, `${currentSched}_sched_end`].join(',');
         const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(${keys})&select=key,value`, {
           headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         });
@@ -979,7 +985,17 @@
           if (r.key === `${currentSched}_is_open`) isOp = r.value;
           if (r.key === `${currentSched}_sched_start`) sStart = r.value;
           if (r.key === `${currentSched}_sched_end`) sEnd = r.value;
+
+          // Also pre-fill the date picker if it exists
+          if (r.key === 'scoreboard_date' && scoreboardDatePicker && !scoreboardDatePicker.value) {
+            scoreboardDatePicker.value = r.value || new Date().toISOString().slice(0, 10);
+          }
         });
+
+        // Set default date if null
+        if (scoreboardDatePicker && !scoreboardDatePicker.value) {
+          scoreboardDatePicker.value = new Date().toISOString().slice(0, 10);
+        }
 
         const val = isOp ? String(isOp).toLowerCase() : 'false';
         const isOpenManual = val === '1' || val === 'true' || val === 'yes';
@@ -1487,6 +1503,15 @@
           method: 'POST', headers: supabaseHeaders(), body: JSON.stringify(rows)
         });
         if (res.ok) {
+
+          // Save the selected date
+          const selectedDate = scoreboardDatePicker.value || new Date().toISOString().slice(0, 10);
+          await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.scoreboard_date`, {
+            method: 'PATCH',
+            headers: supabaseHeaders(),
+            body: JSON.stringify({ value: selectedDate }),
+          });
+
           showAdminToast(`${currentSched.toUpperCase()} Scoreboard Saved!`, 'success');
           // Update local data so "Copy Top Teams" is accurate
           latestScoreboardData = rows;
@@ -1576,6 +1601,9 @@
       };
       rows.sort((a, b) => safeNum(b.total) - safeNum(a.total));
 
+      const displayDate = scoreboardDatePicker.value || new Date().toISOString().slice(0, 10);
+      const timestampLabel = displayDate;
+
       const container = document.createElement('div');
       container.style.position = 'fixed';
       container.style.left = '-9999px';
@@ -1585,9 +1613,6 @@
       container.style.background = 'radial-gradient(circle at top, #020617 0%, #000 100%)';
       container.style.color = '#e5e7eb';
       container.style.fontFamily = "'Inter', sans-serif";
-
-      const now = new Date();
-      const timestampLabel = now.toLocaleString();
 
       container.innerHTML = `
         <div style="text-align: center; margin-bottom: 25px;">
@@ -1641,8 +1666,7 @@
         });
 
         const link = document.createElement('a');
-        const filenameDate = now.toISOString().slice(0, 10);
-        link.download = `Results_${currentSched.toUpperCase()}_${filenameDate}.png`;
+        link.download = `Results_${currentSched.toUpperCase()}_${displayDate}.png`;
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
         showAdminToast("Official Results Saved!", "success");
@@ -1660,7 +1684,7 @@
       const { confirmed } = await openAdminPopup({
 
         title: makeOpen ? `Open ${currentSched.toUpperCase()} manually` : `Close ${currentSched.toUpperCase()} manually`,
-        message: makeOpen ? `Open reservations for ${currentSched.toUpperCase()}?` : `Close reservations for ${currentSched.toUpperCase()}?`,
+        message: makeOpen ? `Open reservations for ${currentSched.toUpperCase()} ? ` : `Close reservations for ${currentSched.toUpperCase()} ? `,
         requireInput: false,
         confirmText: makeOpen ? 'Open' : 'Close',
         cancelText: 'Cancel'
@@ -1668,7 +1692,7 @@
       if (!confirmed) return;
       try {
         const value = makeOpen ? 'true' : 'false';
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${currentSched}_is_open`, {
+        const res = await fetch(`${SUPABASE_URL} /rest/v1 / config ? key = eq.${currentSched} _is_open`, {
           method: 'PATCH',
           headers: supabaseHeaders(),
           body: JSON.stringify({ value }),
@@ -1701,4 +1725,3 @@
 </body>
 
 </html>
-
