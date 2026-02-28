@@ -723,6 +723,7 @@
     const adminPopupCancel = document.getElementById('adminPopupCancel');
 
     let latestSlots = [];
+    let latestScoreboardData = [];
     let adminPopupResolver = null;
     let currentSched = '8pm'; // DEFAULT VIEW
 
@@ -838,6 +839,14 @@
           clan: r.clan || '',
           isFilled: !!(r.clan && r.clan.trim())
         }));
+
+        // Fetch current scoreboard data to persist inputs
+        const scoreRes = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?schedule_type=eq.${currentSched}&select=*`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        });
+        const scoreData = await scoreRes.json();
+        latestScoreboardData = Array.isArray(scoreData) ? scoreData : [];
+
         renderView();
       } catch (e) {
         console.error(e);
@@ -1065,21 +1074,25 @@
 
           const scoreInputs = [];
 
+          // Find existing saved data for this team
+          const existingScore = latestScoreboardData.find(d => d.team === s.clan);
+
           // helper to create editable score cells
-          function addCell() {
+          function addCell(val = '') {
             const td = document.createElement('td');
             td.style.padding = '4px 4px';
             td.style.textAlign = 'center';
             td.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
             const input = document.createElement('input');
-            input.type = 'text'; // Changed to text to allow "NO SHOW"
-            input.style.width = '60px'; // Slightly wider for text
+            input.type = 'text';
+            input.value = val;
+            input.style.width = '60px';
             input.style.padding = '4px 4px';
-            input.style.borderRadius = '20px'; // Bilog bilog
+            input.style.borderRadius = '20px';
             input.style.border = '1px solid rgba(255,255,255,0.2)';
             input.style.background = 'rgba(15,23,42,0.95)';
             input.style.color = '#e5e7eb';
-            input.style.fontSize = '10px'; // Smaller font for longer text
+            input.style.fontSize = '10px';
             input.style.textAlign = 'center';
             input.style.outline = 'none';
             input.onfocus = () => input.style.borderColor = '#3b82f6';
@@ -1090,7 +1103,12 @@
           }
 
           // R1, PP1, R2, PP2, R3, PP3
-          for (let i = 0; i < 6; i++) addCell();
+          addCell(existingScore?.r1 || '');
+          addCell(existingScore?.pp1 || '');
+          addCell(existingScore?.r2 || '');
+          addCell(existingScore?.pp2 || '');
+          addCell(existingScore?.r3 || '');
+          addCell(existingScore?.pp3 || '');
 
           // TOTAL cell (auto-calculated)
           const totalTd = document.createElement('td');
@@ -1098,8 +1116,9 @@
           totalTd.style.textAlign = 'center';
           totalTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
           const totalInput = document.createElement('input');
-          totalInput.type = 'text'; // Keep consistent with text cells
-          totalInput.readOnly = false; // Pinayagan ulit na mag-manual type sa Total box
+          totalInput.type = 'text';
+          totalInput.value = existingScore?.total || '';
+          totalInput.readOnly = false;
           totalInput.style.width = '60px';
           totalInput.style.padding = '4px 4px';
           totalInput.style.borderRadius = '20px';
@@ -1131,7 +1150,6 @@
               }
             });
 
-            // Bagong priority: unahin ang total points (hasNumbers)
             if (hasNumbers) {
               totalInput.value = sum;
             } else if (hasNoShow) {
@@ -1330,7 +1348,12 @@
             });
           }
         }
-        showAdminToast("All slots reset.", 'success');
+        // Also clear the scoreboard data for this schedule
+        await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?schedule_type=eq.${currentSched}`, {
+          method: 'DELETE', headers: supabaseHeaders()
+        });
+
+        showAdminToast("All slots and scores reset.", 'success');
         loadAdminSlots();
       } catch (e) {
         console.error(e);
