@@ -697,6 +697,9 @@
                 <button id="saveScoreboardBtn" class="btn btn-ghost" style="font-size:11px; padding:6px 10px;">
                   Save scoreboard
                 </button>
+                <button id="resetScoreboardBtn" class="btn btn-danger" style="font-size:11px; padding:6px 10px;">
+                  Reset Scoreboard
+                </button>
                 <button id="copyTopTeamsBtn" class="btn btn-update" style="font-size:11px; padding:6px 10px;">
                   Copy Top Teams
                 </button>
@@ -813,6 +816,7 @@
     const reservationStatusLabel = document.getElementById('reservationStatusLabel');
     const toggleOpenBtn = document.getElementById('toggleOpenBtn');
     const saveScoreboardBtn = document.getElementById('saveScoreboardBtn');
+    const resetScoreboardBtn = document.getElementById('resetScoreboardBtn');
     const copyTopTeamsBtn = document.getElementById('copyTopTeamsBtn');
     const saveAsImageBtn = document.getElementById('saveAsImageBtn');
     const scoreboardDatePicker = document.getElementById('scoreboardDatePicker');
@@ -1582,6 +1586,35 @@
           }).catch(() => { });
         }
       } catch (e) { showAdminToast("Save failed.", 'error'); }
+    };
+
+    resetScoreboardBtn.onclick = async () => {
+      const { confirmed } = await openAdminPopup({
+        title: 'Reset Scoreboard',
+        message: `Clear all saved scores and history for the ${currentSched.toUpperCase()} view? This will remove all teams from the scoreboard until you save again.`,
+        requireInput: false,
+        confirmText: 'Reset',
+        cancelText: 'Cancel'
+      });
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?schedule_type=eq.${currentSched}`, {
+          method: 'DELETE',
+          headers: supabaseHeaders()
+        });
+
+        if (res.ok) {
+          latestScoreboardData = [];
+          renderView();
+          showAdminToast(`${currentSched.toUpperCase()} scoreboard reset successfully.`, 'success');
+        } else {
+          showAdminToast('Failed to reset scoreboard.', 'error');
+        }
+      } catch (e) {
+        console.error(e);
+        showAdminToast('Error resetting scoreboard: ' + e.message, 'error');
+      }
     };
 
     copyTopTeamsBtn.onclick = async () => {
