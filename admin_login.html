@@ -121,7 +121,6 @@
     <input type="password" id="adminKey" class="input" placeholder="Admin key">
     <div id="errorMsg" class="error"></div>
     <button id="loginBtn" class="btn btn-primary">Continue</button>
-
   </div>
 
   <script>
@@ -130,7 +129,6 @@
 
     const keyInput = document.getElementById('adminKey');
     const loginBtn = document.getElementById('loginBtn');
-    const backBtn = document.getElementById('backBtn');
     const errorMsg = document.getElementById('errorMsg');
 
     function doLogin() {
@@ -156,9 +154,6 @@
       if (e.key === 'Enter') doLogin();
     });
 
-    backBtn.onclick = () => {
-      window.location.href = 'scrim_reservation.html';
-    };
 
     // Focus keyboard on input
     setTimeout(() => keyInput.focus(), 50);
@@ -166,4 +161,3 @@
 </body>
 
 </html>
-
