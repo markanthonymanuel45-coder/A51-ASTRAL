@@ -841,7 +841,6 @@
     let latestScoreboardData = [];
     let adminPopupResolver = null;
     let currentSched = '8pm'; // DEFAULT VIEW
-    let ignoreHistoryUntilSave = false; // Flag to hide history in admin locally
 
     function normalize(str) {
       return (str || '').toString().trim().toLowerCase();
@@ -963,8 +962,11 @@
         const scoreData = await scoreRes.json();
         const fetchedScores = Array.isArray(scoreData) ? scoreData : [];
 
-        // Only update local history if we haven't explicitly "Reset" the admin view
-        if (!ignoreHistoryUntilSave) {
+        // Use localStorage to persist the "Hidden" state across page refreshes
+        const isHidden = localStorage.getItem(`hideScoreHistory_${currentSched}`) === 'true';
+        if (isHidden) {
+          latestScoreboardData = [];
+        } else {
           latestScoreboardData = fetchedScores;
         }
 
@@ -1583,8 +1585,8 @@
           });
 
           showAdminToast(`${currentSched.toUpperCase()} Scoreboard Saved!`, 'success');
-          // Update local data and stop ignoring history since we have fresh data
-          ignoreHistoryUntilSave = false;
+          // Update local data and clear the "hidden" flag since we have fresh data
+          localStorage.removeItem(`hideScoreHistory_${currentSched}`);
           latestScoreboardData = rows;
           fetch('https://api.github.com/repos/markanthonymanuel45-coder/A51-ASTRAL/dispatches', {
             method: 'POST',
@@ -1598,17 +1600,17 @@
     resetScoreboardBtn.onclick = async () => {
       const { confirmed } = await openAdminPopup({
         title: 'Clear Admin View',
-        message: `Hide all old saved teams from YOUR view? (Public view on the website will NOT be affected until you save new scores).`,
+        message: `Hide all old saved teams from YOUR view? (Public view remains active until you save new scores).`,
         requireInput: false,
         confirmText: 'Clear Admin View',
         cancelText: 'Cancel'
       });
       if (!confirmed) return;
 
-      ignoreHistoryUntilSave = true;
+      localStorage.setItem(`hideScoreHistory_${currentSched}`, 'true');
       latestScoreboardData = [];
       renderView();
-      showAdminToast(`${currentSched.toUpperCase()} admin history hidden. Public view remains active.`, 'success');
+      showAdminToast(`${currentSched.toUpperCase()} dashboard history cleared. Refreshing won't bring it back.`, 'success');
     };
 
     copyTopTeamsBtn.onclick = async () => {
