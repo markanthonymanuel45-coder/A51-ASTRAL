@@ -841,6 +841,7 @@
     let latestScoreboardData = [];
     let adminPopupResolver = null;
     let currentSched = '8pm'; // DEFAULT VIEW
+    let ignoreHistoryUntilSave = false; // Flag to hide history in admin locally
 
     function normalize(str) {
       return (str || '').toString().trim().toLowerCase();
@@ -960,7 +961,12 @@
           headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         });
         const scoreData = await scoreRes.json();
-        latestScoreboardData = Array.isArray(scoreData) ? scoreData : [];
+        const fetchedScores = Array.isArray(scoreData) ? scoreData : [];
+
+        // Only update local history if we haven't explicitly "Reset" the admin view
+        if (!ignoreHistoryUntilSave) {
+          latestScoreboardData = fetchedScores;
+        }
 
         renderView();
       } catch (e) {
@@ -1577,7 +1583,8 @@
           });
 
           showAdminToast(`${currentSched.toUpperCase()} Scoreboard Saved!`, 'success');
-          // Update local data so "Copy Top Teams" is accurate
+          // Update local data and stop ignoring history since we have fresh data
+          ignoreHistoryUntilSave = false;
           latestScoreboardData = rows;
           fetch('https://api.github.com/repos/markanthonymanuel45-coder/A51-ASTRAL/dispatches', {
             method: 'POST',
@@ -1590,31 +1597,18 @@
 
     resetScoreboardBtn.onclick = async () => {
       const { confirmed } = await openAdminPopup({
-        title: 'Reset Scoreboard',
-        message: `Clear all saved scores and history for the ${currentSched.toUpperCase()} view? This will remove all teams from the scoreboard until you save again.`,
+        title: 'Clear Admin View',
+        message: `Hide all old saved teams from YOUR view? (Public view on the website will NOT be affected until you save new scores).`,
         requireInput: false,
-        confirmText: 'Reset',
+        confirmText: 'Clear Admin View',
         cancelText: 'Cancel'
       });
       if (!confirmed) return;
 
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?schedule_type=eq.${currentSched}`, {
-          method: 'DELETE',
-          headers: supabaseHeaders()
-        });
-
-        if (res.ok) {
-          latestScoreboardData = [];
-          renderView();
-          showAdminToast(`${currentSched.toUpperCase()} scoreboard reset successfully.`, 'success');
-        } else {
-          showAdminToast('Failed to reset scoreboard.', 'error');
-        }
-      } catch (e) {
-        console.error(e);
-        showAdminToast('Error resetting scoreboard: ' + e.message, 'error');
-      }
+      ignoreHistoryUntilSave = true;
+      latestScoreboardData = [];
+      renderView();
+      showAdminToast(`${currentSched.toUpperCase()} admin history hidden. Public view remains active.`, 'success');
     };
 
     copyTopTeamsBtn.onclick = async () => {
