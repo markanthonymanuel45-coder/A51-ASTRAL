@@ -596,6 +596,9 @@
                 <button id="saveScoreboardBtn" class="btn btn-ghost" style="font-size:11px; padding:6px 10px;">
                   Save scoreboard
                 </button>
+                <button id="copyTopTeamsBtn" class="btn btn-update" style="font-size:11px; padding:6px 10px;">
+                  Copy Top Teams
+                </button>
               </div>
             </div>
             <div style="font-size:13px; color:#9ca3af; padding:4px 2px 10px 2px; margin-bottom:6px;">
@@ -705,6 +708,7 @@
     const reservationStatusLabel = document.getElementById('reservationStatusLabel');
     const toggleOpenBtn = document.getElementById('toggleOpenBtn');
     const saveScoreboardBtn = document.getElementById('saveScoreboardBtn');
+    const copyTopTeamsBtn = document.getElementById('copyTopTeamsBtn');
 
     const scheduleStatusLabel = document.getElementById('scheduleStatusLabel');
     const scheduleBtn = document.getElementById('scheduleBtn');
@@ -1366,10 +1370,10 @@
       scoreboardBody.querySelectorAll('tr').forEach(tr => {
         const cells = tr.querySelectorAll('td');
         if (cells.length < 8) return;
-        const team = cells[0].textContent;
+        const team = cells[1].textContent;
         const getVal = (idx) => cells[idx].querySelector('input')?.value.trim() || '';
         rows.push({
-          team, r1: getVal(1), pp1: getVal(2), r2: getVal(3), pp2: getVal(4), r3: getVal(5), pp3: getVal(6), total: getVal(7),
+          team, r1: getVal(2), pp1: getVal(3), r2: getVal(4), pp2: getVal(5), r3: getVal(6), pp3: getVal(7), total: getVal(8),
           schedule_type: currentSched
         });
       });
@@ -1384,6 +1388,8 @@
         });
         if (res.ok) {
           showAdminToast(`${currentSched.toUpperCase()} Scoreboard Saved!`, 'success');
+          // Update local data so "Copy Top Teams" is accurate
+          latestScoreboardData = rows;
           fetch('https://api.github.com/repos/markanthonymanuel45-coder/A51-ASTRAL/dispatches', {
             method: 'POST',
             headers: { Authorization: 'token ghp_82233827382', Accept: 'application/vnd.github.v3+json' },
@@ -1391,6 +1397,54 @@
           }).catch(() => { });
         }
       } catch (e) { showAdminToast("Save failed.", 'error'); }
+    };
+
+    copyTopTeamsBtn.onclick = async () => {
+      // Get data from the UI rows
+      const rows = [];
+      scoreboardBody.querySelectorAll('tr').forEach(tr => {
+        const cells = tr.querySelectorAll('td');
+        if (cells.length < 9) return;
+        const team = cells[1].textContent;
+        const total = parseInt(cells[8].querySelector('input')?.value || '0', 10);
+        if (team && team !== '—') {
+          rows.push({ team, total });
+        }
+      });
+
+      if (rows.length === 0) {
+        showAdminToast("No scoreboard data found.", "error");
+        return;
+      }
+
+      // Sort by total points descending
+      rows.sort((a, b) => b.total - a.total);
+
+      const top1 = rows[0]?.team || "";
+      const top2 = rows[1]?.team || "";
+      const top3 = rows[2]?.team || "";
+
+      // Dynamic month/year
+      const now = new Date();
+      const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+      const currentMonth = monthNames[now.getMonth()];
+      const currentYear = now.getFullYear();
+
+      let text = `👽𝐂𝐎𝐍𝐆𝐑𝐀𝐓𝐔𝐋𝐀𝐓𝐈𝐎𝐍𝐒 𝐓𝐎 𝐓𝐇𝐄 𝐓𝐎𝐏 𝐓𝐄𝐀𝐌𝐒 👽\n\n`;
+      text += `${currentMonth} , ${currentYear} | ${currentSched.toUpperCase()}\n`;
+      text += `🥇 𝐓𝐎𝐏 𝟏: ${top1}\n`;
+      text += `🥈 𝐓𝐎𝐏 𝟐: ${top2}\n`;
+      text += `🥉 𝐓𝐎𝐏 𝟑: ${top3}\n\n`;
+      text += `🎖️ 𝐌𝐕𝐏: \n\n`;
+      text += `𝙋𝙇𝙀𝘼𝙎𝙀 𝙎𝙀𝙉𝘿 𝙔𝙊𝙐𝙍 𝙇𝙊𝙂𝙊𝙎 𝘼𝙉𝘿 𝙈𝙑𝙋 𝙋𝙄𝘾𝙎 𝙃𝙀𝙍𝙀.👽`;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showAdminToast("Top Teams copied to clipboard!", "success");
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+        showAdminToast("Failed to copy text.", "error");
+      }
     };
 
     toggleOpenBtn.addEventListener('click', async () => {
