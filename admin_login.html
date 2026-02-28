@@ -126,7 +126,7 @@
 
   <script>
     // IMPORTANT: this must match ADMIN_KEY in your Apps Script
-    const ADMIN_PASS = 'ASTRAL51';
+    const ADMIN_PASS = 'A51 ASTRAL';
 
     const keyInput = document.getElementById('adminKey');
     const loginBtn = document.getElementById('loginBtn');
@@ -143,8 +143,8 @@
         errorMsg.textContent = 'Incorrect admin key.';
         return;
       }
-      // mark as logged in for this browser
-      localStorage.setItem('codmAdminAuth', '1');
+      // mark as logged in for this session only
+      sessionStorage.setItem('codmAdminAuth', '1');
       errorMsg.textContent = '';
       window.location.href = 'admin_dashboard.html';
     }
@@ -158,12 +158,8 @@
       window.location.href = 'scrim_reservation.html';
     };
 
-    // If already logged in, go straight to dashboard
-    if (localStorage.getItem('codmAdminAuth') === '1') {
-      window.location.href = 'admin_dashboard.html';
-    } else {
-      setTimeout(() => keyInput.focus(), 50);
-    }
+    // Focus keyboard on input
+    setTimeout(() => keyInput.focus(), 50);
   </script>
 </body>
 
