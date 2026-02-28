@@ -1172,31 +1172,63 @@
         topClansEl.appendChild(chip);
       });
 
-      // ---- Scoreboard rows (team list auto from scrim slots) ----
+      // ---- Scoreboard rows (Persistent logic: current slots + saved scores) ----
       if (scoreboardBody) {
         scoreboardBody.innerHTML = '';
 
+        const teamsInSlots = new Set();
+        const combinedResults = [];
+
+        // 1. Map current filled slots
         filled.forEach(s => {
+          const normName = normalize(s.clan);
+          const existingScore = latestScoreboardData.find(d => normalize(d.team) === normName);
+          combinedResults.push({
+            slot: s.slot,
+            clan: s.clan,
+            score: existingScore || {},
+            isCurrent: true
+          });
+          teamsInSlots.add(normName);
+        });
+
+        // 2. Add saved scoreboard entries that are no longer in current slots (Persistence)
+        latestScoreboardData.forEach(d => {
+          const normName = normalize(d.team);
+          if (!teamsInSlots.has(normName) && normName !== '') {
+            combinedResults.push({
+              slot: '—',
+              clan: d.team,
+              score: d,
+              isCurrent: false
+            });
+          }
+        });
+
+        combinedResults.forEach(item => {
+          const s = item;
           const tr = document.createElement('tr');
-          tr.style.background = 'rgba(15,23,42,0.85)';
+          tr.style.background = s.isCurrent ? 'rgba(15,23,42,0.85)' : 'rgba(30,41,59,0.5)';
+          if (!s.isCurrent) tr.style.opacity = '0.8';
 
           const slotTd = document.createElement('td');
           slotTd.textContent = s.slot;
           slotTd.style.padding = '5px 8px';
           slotTd.style.textAlign = 'center';
           slotTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+          slotTd.style.color = s.isCurrent ? '#fff' : '#9ca3af';
           tr.appendChild(slotTd);
 
           const nameTd = document.createElement('td');
           nameTd.textContent = s.clan;
           nameTd.style.padding = '5px 8px';
           nameTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+          nameTd.style.fontWeight = s.isCurrent ? '600' : '400';
+          nameTd.style.color = s.isCurrent ? '#fff' : '#9ca3af';
           tr.appendChild(nameTd);
 
           const scoreInputs = [];
-
-          // Find existing saved data for this team
-          const existingScore = latestScoreboardData.find(d => d.team === s.clan);
+          const existingScore = s.score;
 
           // helper to create editable score cells
           function addCell(val = '') {
@@ -1210,20 +1242,19 @@
             input.style.width = '60px';
             input.style.padding = '4px 4px';
             input.style.borderRadius = '20px';
-            input.style.border = '1px solid rgba(255,255,255,0.2)';
+            input.style.border = s.isCurrent ? '1px solid rgba(255,255,255,0.2)' : '1px dotted rgba(255,255,255,0.1)';
             input.style.background = 'rgba(15,23,42,0.95)';
-            input.style.color = '#e5e7eb';
+            input.style.color = s.isCurrent ? '#e5e7eb' : '#9ca3af';
             input.style.fontSize = '10px';
             input.style.textAlign = 'center';
             input.style.outline = 'none';
             input.onfocus = () => input.style.borderColor = '#3b82f6';
-            input.onblur = () => input.style.borderColor = 'rgba(255,255,255,0.2)';
+            input.onblur = () => input.style.borderColor = s.isCurrent ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)';
             td.appendChild(input);
             tr.appendChild(td);
             scoreInputs.push(input);
           }
 
-          // R1, PP1, R2, PP2, R3, PP3
           addCell(existingScore?.r1 || '');
           addCell(existingScore?.pp1 || '');
           addCell(existingScore?.r2 || '');
@@ -1231,7 +1262,6 @@
           addCell(existingScore?.r3 || '');
           addCell(existingScore?.pp3 || '');
 
-          // TOTAL cell (auto-calculated)
           const totalTd = document.createElement('td');
           totalTd.style.padding = '4px 4px';
           totalTd.style.textAlign = 'center';
@@ -1239,7 +1269,6 @@
           const totalInput = document.createElement('input');
           totalInput.type = 'text';
           totalInput.value = existingScore?.total || '';
-          totalInput.readOnly = false;
           totalInput.style.width = '60px';
           totalInput.style.padding = '4px 4px';
           totalInput.style.borderRadius = '20px';
@@ -1252,44 +1281,31 @@
           totalInput.style.outline = 'none';
           totalTd.appendChild(totalInput);
           tr.appendChild(totalTd);
-
-          function recompute() {
-            let sum = 0;
-            let hasNumbers = false;
-            let hasNoShow = false;
-
-            scoreInputs.forEach(inp => {
-              const raw = inp.value.trim().toUpperCase();
-              if (raw === '') return;
-
-              const val = parseInt(raw, 10);
-              if (!isNaN(val)) {
-                sum += val;
-                hasNumbers = true;
-              } else if (raw.includes('NS') || raw.includes('SHOW') || raw.includes('VOID') || raw === 'N/S') {
-                hasNoShow = true;
-              }
-            });
-
-            if (hasNumbers) {
-              totalInput.value = sum;
-            } else if (hasNoShow) {
-              totalInput.value = '0';
-            } else {
-              totalInput.value = '';
-            }
-          }
-
-          scoreInputs.forEach(inp => {
-            inp.addEventListener('input', recompute);
-            inp.addEventListener('change', recompute);
-          });
+          scoreInputs.push(totalInput);
 
           scoreboardBody.appendChild(tr);
+
+          const updateRowTotal = () => {
+            let sum = 0;
+            scoreInputs.forEach((inp, idx) => {
+              if (idx === 6) return; // Skip the total input itself
+              let v = inp.value.trim().toUpperCase();
+              if (v === 'NO SHOW' || v === 'VOID') v = '0';
+              const n = parseInt(v, 10);
+              if (!isNaN(n)) sum += n;
+            });
+            totalInput.value = sum;
+          };
+
+          scoreInputs.forEach((inp, idx) => {
+            if (idx < 6) { // Attach listeners only to R1, PP1, R2, PP2, R3, PP3
+              inp.addEventListener('input', updateRowTotal);
+            }
+          });
         });
       }
 
-      // slots
+      // slots grid
       slotGrid.innerHTML = '';
       filtered.forEach(s => {
         const card = document.createElement('div');
@@ -1310,33 +1326,26 @@
         clan.className = 'slot-clan';
         clan.textContent = s.isFilled ? s.clan : '—';
 
-        const tag = document.createElement('div');
-        tag.className = 'slot-tag';
-        tag.textContent = s.isFilled && s.tag ? 'Clan tag: ' + s.tag : '';
-
         card.appendChild(topRow);
         card.appendChild(clan);
-        if (tag.textContent) {
-          card.appendChild(tag);
-        }
 
-        // Admin can update or delete a filled slot directly from dashboard
-        if (s.isFilled && s.clan) {
+        if (s.isFilled) {
           const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'slot-actions';
           actionsDiv.style.display = 'flex';
           actionsDiv.style.gap = '6px';
-          actionsDiv.style.marginTop = '8px';
+          actionsDiv.style.marginTop = '10px';
 
           const updateBtn = document.createElement('button');
           updateBtn.textContent = 'Update';
-          updateBtn.className = 'btn btn-update';
+          updateBtn.className = 'btn btn-primary';
           updateBtn.style.flex = '1';
           updateBtn.style.padding = '4px 8px';
           updateBtn.style.fontSize = '11px';
           updateBtn.onclick = async () => {
             const { confirmed, value } = await openAdminPopup({
-              title: 'Update Clan Name',
-              message: `Edit clan name for Slot ${s.slot}:`,
+              title: 'Update slot',
+              message: `Updating slot ${s.slot} for "${s.clan}".`,
               requireInput: true,
               initialValue: s.clan,
               placeholder: 'New clan name',
@@ -1486,9 +1495,12 @@
       const rows = [];
       scoreboardBody.querySelectorAll('tr').forEach(tr => {
         const cells = tr.querySelectorAll('td');
-        if (cells.length < 8) return;
+        if (cells.length < 9) return;
         const team = cells[1].textContent;
-        const getVal = (idx) => cells[idx].querySelector('input')?.value.trim() || '';
+        const getVal = (idx) => {
+          const v = cells[idx].querySelector('input')?.value.trim();
+          return v === '' ? null : v;
+        };
         rows.push({
           team, r1: getVal(2), pp1: getVal(3), r2: getVal(4), pp2: getVal(5), r3: getVal(6), pp3: getVal(7), total: getVal(8),
           schedule_type: currentSched
