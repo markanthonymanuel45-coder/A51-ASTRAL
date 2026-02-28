@@ -5,6 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CODM Scrim Admin Dashboard</title>
+  <script>
+    // --- AUTHENTICATION GUARD ---
+    // This must be at the very top to prevent unauthorized users from even seeing the page structure.
+    if (localStorage.getItem('codmAdminAuth') !== '1') {
+      window.location.href = 'admin_login.html';
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     body {
@@ -618,6 +625,11 @@
             Scoreboard
             <span></span>
           </button>
+          <button id="logoutBtn" class="sidebar-item"
+            style="margin-top: auto; color: #fca5a5; border-color: rgba(239, 68, 68, 0.2);">
+            Logout
+            <span></span>
+          </button>
         </div>
       </aside>
 
@@ -792,10 +804,11 @@
       'Content-Type': 'application/json',
     });
 
-    // Simple front-end guard: if not logged in, go to login page
-    if (localStorage.getItem('codmAdminAuth') !== '1') {
+    // Handle Logout
+    document.getElementById('logoutBtn').onclick = () => {
+      localStorage.removeItem('codmAdminAuth');
       window.location.href = 'admin_login.html';
-    }
+    };
 
     const slotGrid = document.getElementById('slotGrid');
     const usedCountEl = document.getElementById('usedCount');
