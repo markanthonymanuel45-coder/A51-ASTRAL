@@ -1039,7 +1039,7 @@
       } catch (e) {
         console.error(e);
         reservationStatusLabel.textContent = 'Unknown';
-        showAdminToast('Unable to fetch status.', 'error');
+        showAdminToast('Unable to fetch status: ' + e.message, 'error');
       }
     }
 
@@ -1176,6 +1176,17 @@
       if (scoreboardBody) {
         scoreboardBody.innerHTML = '';
 
+        // Update header to have action column
+        const scoreboardHeader = scoreboardBody.parentElement.querySelector('thead tr');
+        if (scoreboardHeader && !scoreboardHeader.querySelector('.action-head')) {
+          const th = document.createElement('th');
+          th.className = 'action-head';
+          th.style.padding = '6px 4px';
+          th.style.borderBottom = '1px solid rgba(55,65,81,0.9)';
+          th.textContent = ''; // Empty for delete button
+          scoreboardHeader.appendChild(th);
+        }
+
         const teamsInSlots = new Set();
         const combinedResults = [];
 
@@ -1193,15 +1204,28 @@
         });
 
         // 2. Add saved scoreboard entries that are no longer in current slots (Persistence)
-        latestScoreboardData.forEach(d => {
+        // Deduplicate scoreboard data first to prevent clutter
+        const seenTeams = new Set();
+        const uniqueSaved = latestScoreboardData.filter(d => {
+          const n = normalize(d.team);
+          if (seenTeams.has(n)) return false;
+          seenTeams.add(n);
+          return true;
+        });
+
+        uniqueSaved.forEach(d => {
           const normName = normalize(d.team);
           if (!teamsInSlots.has(normName) && normName !== '') {
-            combinedResults.push({
-              slot: '—',
-              clan: d.team,
-              score: d,
-              isCurrent: false
-            });
+            // Only show history rows if they have actual data
+            const hasData = d.r1 || d.pp1 || d.r2 || d.pp2 || d.r3 || d.pp3 || (d.total && d.total !== '0');
+            if (hasData) {
+              combinedResults.push({
+                slot: '—',
+                clan: d.team,
+                score: d,
+                isCurrent: false
+              });
+            }
           }
         });
 
@@ -1282,6 +1306,29 @@
           totalTd.appendChild(totalInput);
           tr.appendChild(totalTd);
           scoreInputs.push(totalInput);
+
+          // Action Column (for delete)
+          const actionTd = document.createElement('td');
+          actionTd.style.padding = '4px 4px';
+          actionTd.style.textAlign = 'center';
+          actionTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+
+          if (!s.isCurrent) {
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '&times;';
+            delBtn.style.background = 'transparent';
+            delBtn.style.color = '#ef4444';
+            delBtn.style.border = 'none';
+            delBtn.style.fontSize = '18px';
+            delBtn.style.cursor = 'pointer';
+            delBtn.title = 'Remove this row';
+            delBtn.onclick = () => {
+              tr.remove();
+              showAdminToast(`${s.clan} removed from view. Save to update permanent storage.`, 'info');
+            };
+            actionTd.appendChild(delBtn);
+          }
+          tr.appendChild(actionTd);
 
           scoreboardBody.appendChild(tr);
 
@@ -1462,7 +1509,7 @@
     resetBtnAdmin.addEventListener('click', async () => {
       const { confirmed } = await openAdminPopup({
         title: 'Reset all slots',
-        message: 'Clear all slot reservations? This cannot be undone.',
+        message: 'Clear all slot reservations for this schedule? (Scoreboard history will be kept until next save).',
         requireInput: false,
         confirmText: 'Reset',
         cancelText: 'Cancel'
@@ -1478,16 +1525,16 @@
             });
           }
         }
-        // Also clear the scoreboard data for this schedule
-        await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?schedule_type=eq.${currentSched}`, {
-          method: 'DELETE', headers: supabaseHeaders()
-        });
+        // Scoreboard deletion is now disabled per user request to keep results visible until next save.
+        // await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?schedule_type=eq.${currentSched}`, {
+        //   method: 'DELETE', headers: supabaseHeaders()
+        // });
 
-        showAdminToast("All slots and scores reset.", 'success');
+        showAdminToast("All slots reset. Old scores are preserved in history.", 'success');
         loadAdminSlots();
       } catch (e) {
         console.error(e);
-        showAdminToast("Error while resetting.", 'error');
+        showAdminToast("Error while resetting: " + e.message, 'error');
       }
     });
 
@@ -1705,7 +1752,7 @@
       if (!confirmed) return;
       try {
         const value = makeOpen ? 'true' : 'false';
-        const res = await fetch(`${SUPABASE_URL} /rest/v1 / config ? key = eq.${currentSched} _is_open`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${currentSched}_is_open`, {
           method: 'PATCH',
           headers: supabaseHeaders(),
           body: JSON.stringify({ value }),
@@ -1713,10 +1760,12 @@
         if (res.ok) {
           await checkGlobalStatus();
           showAdminToast(`${currentSched.toUpperCase()} status updated.`, 'success');
+        } else {
+          showAdminToast('Failed to update status: ' + res.statusText, 'error');
         }
       } catch (e) {
         console.error(e);
-        showAdminToast('Error updating status.', 'error');
+        showAdminToast('Error updating status: ' + e.message, 'error');
       }
     });
 
