@@ -7,8 +7,8 @@
   <title>CODM Scrim Admin Dashboard</title>
   <script>
     // --- AUTHENTICATION GUARD ---
-    // This must be at the very top to prevent unauthorized users from even seeing the page structure.
-    if (localStorage.getItem('codmAdminAuth') !== '1') {
+    // Using sessionStorage so the login is cleared when the tab/browser is closed.
+    if (sessionStorage.getItem('codmAdminAuth') !== '1') {
       window.location.href = 'admin_login.html';
     }
   </script>
@@ -806,7 +806,7 @@
 
     // Handle Logout
     document.getElementById('logoutBtn').onclick = () => {
-      localStorage.removeItem('codmAdminAuth');
+      sessionStorage.removeItem('codmAdminAuth');
       window.location.href = 'admin_login.html';
     };
 
