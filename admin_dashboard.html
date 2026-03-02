@@ -610,7 +610,6 @@
         overflow-x: auto;
         padding-bottom: 4px;
       }
-    }
   </style>
 </head>
 
@@ -673,6 +672,8 @@
                 </div>
                 <button id="refreshBtn" class="btn btn-ghost">Refresh</button>
                 <button id="copySlotsBtn" class="btn btn-ghost">Copy Slots</button>
+                <button id="announceBtn" class="btn btn-update" style="background:#22c55e; border-color:#16a34a;">📢
+                  Copy GC Announce</button>
                 <button id="resetBtnAdmin" class="btn btn-danger">Reset All Slots</button>
               </div>
               <div class="metrics">
@@ -729,7 +730,7 @@
               points and totals as needed.
             </div>
 
-            <div style="overflow-x:auto;">
+            <div style="overflow-x:auto; margin-top: 15px;">
               <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:520px;">
                 <thead>
                   <tr style="background:rgba(15,23,42,0.95);">
@@ -752,8 +753,10 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
+  </div>
   </div>
 
   <!-- Schedule Popup -->
@@ -1130,19 +1133,14 @@
     });
 
     function setActiveView(view) {
-      if (view === 'scrim') {
-        navScrim.classList.add('active');
-        navScoreboard.classList.remove('active');
-        scrimView.style.display = 'block';
-        scoreboardView.style.display = 'none';
-        viewSubtitle.textContent = 'Overview of all reserved slots and clan usage.';
-      } else {
-        navScrim.classList.remove('active');
-        navScoreboard.classList.add('active');
-        scrimView.style.display = 'none';
-        scoreboardView.style.display = 'block';
-        viewSubtitle.textContent = 'Scoreboard and standings overview.';
-      }
+      scrimView.style.display = view === 'scrim' ? 'block' : 'none';
+      scoreboardView.style.display = view === 'scoreboard' ? 'block' : 'none';
+
+      navScrim.classList.toggle('active', view === 'scrim');
+      navScoreboard.classList.toggle('active', view === 'scoreboard');
+
+      if (view === 'scrim') viewSubtitle.textContent = 'Overview of all reserved slots and clan usage.';
+      else if (view === 'scoreboard') viewSubtitle.textContent = 'Manage points and standings for the current event.';
     }
 
     function renderView() {
@@ -1511,7 +1509,7 @@
         text += `${i}. ${clanName}\n`;
       }
 
-      text += "\n\n𝙼𝙴𝙽𝚃𝙸𝙾𝙽 𝚃𝙷𝙴 𝙰𝙳𝙼𝙸𝙽𝚂 𝙸𝙵 𝚃𝙷𝙴𝚁𝙴 𝙸𝚂 𝙰 𝙲𝙷𝙰𝙽𝙶𝙸𝙽𝙶. \n𝙳𝙾 𝙽𝙾𝚃 𝙴𝙳𝙸𝚃!\n\n\n🚫 𝑩𝑨𝑵𝑵𝑬𝑫 𝑻𝑬𝑨𝑴𝑺  (𝗡𝗢𝗦𝗛𝗢𝗪) 5 SCRIMS:   \n\n\n\n‼️𝗟𝗔𝗧𝗘 𝗖𝗔𝗡𝗖𝗘𝗟𝗟𝗔𝗧𝗜𝗢𝗡‼️\n🚫BANNED 3 SCRIMS👽\n-\n \n𝚁𝚄𝙻𝙴𝚂! ⬇️\nhttps://www.facebook.com/share/p/1EBXVRzz83/";
+      text += "\n\n𝙼𝙴𝙽𝚃𝙸𝙾𝙽 𝚃𝙷𝙴 𝙰𝙳𝙼𝙸𝙽𝚂 𝙸𝙵 𝚃𝙷𝙴𝚁𝙴 𝙸𝚂 𝙰 𝙲𝙷𝙰𝙽𝙶𝙸𝙽𝙶. \n𝙳𝙾 𝙽𝙾𝚃 𝙴𝙳𝙸𝚃!\n\n\n🚫 𝑩𝑨𝑵𝑵𝑬𝑫 𝑻𝑬𝑨𝑴𝑺  (𝗡𝗢𝗦𝗛𝗢𝗪) 5 SCRIMS:   \n\n\n\n‼️𝗟𝗔𝗧𝗘 𝗖𝗔𝗡𝗖𝗘𝗟𝗟𝗔𝚃𝙸𝙾𝙽‼️\n🚫BANNED 3 SCRIMS👽\n-\n \n𝚁𝚄𝙻𝙴𝚂! ⬇️\nhttps://www.facebook.com/share/p/1EBXVRzz83/";
 
       try {
         await navigator.clipboard.writeText(text);
@@ -1531,6 +1529,49 @@
           showAdminToast("Failed to copy slots.", 'error');
         }
         document.body.removeChild(textArea);
+      }
+    });
+
+    const announceBtn = document.getElementById('announceBtn');
+    announceBtn.addEventListener('click', async () => {
+      const used = latestSlots.filter(s => s.isFilled).length;
+      const remaining = MAX_SLOTS - used;
+      const statusText = reservationStatusLabel.textContent.toUpperCase() || "UNKNOWN";
+      const isActuallyOpen = statusText.includes("OPEN");
+      const statusEmoji = isActuallyOpen ? "✅" : "🔴";
+
+      const siteLink = "https://markanthonymanuel45-coder.github.io/A51-ASTRAL/scrim_reservation.html";
+      const sched = currentSched.toUpperCase();
+
+      let text = `🔥 *A51 ASTRAL SCRIM UPDATES* 🔥\n`;
+      text += `━━━━━━━━━━━━━━━━━━━━\n`;
+      text += `⏰ *SCHEDULE:* ${sched}\n`;
+      text += `${statusEmoji} *STATUS:* ${statusText}\n`;
+      text += `👥 *SLOTS:* ${used}/${MAX_SLOTS} (Remaining: ${remaining})\n\n`;
+
+      if (isActuallyOpen && remaining > 0) {
+        text += `👇 *RESERVE YOUR SLOT HERE:*\n`;
+        text += `${siteLink}?sched=${currentSched}\n`;
+      } else if (remaining === 0) {
+        text += `🚫 *STATUS:* 𝑺𝑳𝑶𝑻𝑺 𝑨𝑹𝑬 𝑭𝑼𝑳𝑳! 🚫\n`;
+        text += `Wait for the next session announcement.\n`;
+      } else {
+        text += `⏳ Wait for admin to open the registration.\n`;
+      }
+
+      text += `━━━━━━━━━━━━━━━━━━━━`;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showAdminToast("GC Announcement copied!", 'success');
+      } catch (err) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showAdminToast("GC Announcement copied!", 'success');
       }
     });
 
@@ -1604,6 +1645,9 @@
           // Update local data and clear the "hidden" flag since we have fresh data
           localStorage.removeItem(`hideScoreHistory_${currentSched}`);
           latestScoreboardData = rows;
+
+          latestScoreboardData = rows;
+
           fetch('https://api.github.com/repos/markanthonymanuel45-coder/A51-ASTRAL/dispatches', {
             method: 'POST',
             headers: { Authorization: 'token ghp_82233827382', Accept: 'application/vnd.github.v3+json' },
@@ -1667,7 +1711,7 @@
       text += `🥈 𝐓𝐎𝐏 𝟐: ${top2}\n`;
       text += `🥉 𝐓𝐎𝐏 𝟑: ${top3}\n\n`;
       text += `🎖️ 𝐌𝐕𝐏: \n\n`;
-      text += `𝙋𝙇𝙀𝘼𝙎𝙀 𝙎𝙀𝙉𝘿 𝙔𝙊𝙐𝙍 𝙇𝙊𝙂𝙊𝙎 𝘼𝙉𝘿 𝙈𝙑𝙋 𝙋𝙄𝘾𝙎 𝙃𝙀𝙍𝙀.👽`;
+      text += `𝙋𝙇𝙀𝘼𝙎𝙀 𝙎𝙀𝙉𝘿 𝙔𝙊𝙐𝙍 𝙇𝙊𝐆𝙊𝙎 𝘼𝙉𝘿 𝙈𝙑𝐏 𝙋𝙄𝘾𝙎 𝙃𝙀𝙍𝙀.👽`;
 
       try {
         await navigator.clipboard.writeText(text);
