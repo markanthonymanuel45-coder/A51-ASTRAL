@@ -622,6 +622,59 @@
         padding-bottom: 4px;
       }
     }
+
+    /* Admin Slot Logo Styles */
+    .slot-logo-admin {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      margin-right: 8px;
+    }
+
+    .slot-logo-admin img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Modal Image Preview Styles (from reservation page) */
+    #slotModalLogoPreviewContainer {
+      width: 70px;
+      height: 70px;
+      margin: 10px auto 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px dashed #94a3b8;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #slotModalLogoPreview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .btn-reserve-admin {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: #fff;
+      border: none;
+    }
+
+    .btn-reserve-admin:hover {
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 
@@ -683,6 +736,7 @@
                   <input id="searchClan" type="text" placeholder="Clan or tag...">
                 </div>
                 <button id="refreshBtn" class="btn btn-ghost">Refresh</button>
+                <button id="adminReserveBtn" class="btn btn-reserve-admin">🛡️ Admin Reserve</button>
                 <button id="copySlotsBtn" class="btn btn-ghost">Copy Slots</button>
                 <button id="announceBtn" class="btn btn-update" style="background:#22c55e; border-color:#16a34a;">📢
                   Copy GC Announce</button>
@@ -799,6 +853,37 @@
   </div>
 
   <!-- Reusable admin popup (for confirmations / admin key) -->
+  <!-- New Admin Reserve Modal (Matching Public Reservation Style) -->
+  <div class="admin-popup" id="adminReserveModal">
+    <div class="admin-popup-content" style="width: 320px;">
+      <h3 style="color: #4ade80;">Admin Reserve</h3>
+      <div style="font-size: 11px; color: #9ca3af; margin-bottom: 12px;">Manually reserve a slot with logo.</div>
+
+      <div style="text-align: left; margin-bottom: 12px;">
+        <label style="font-size: 11px; color: #9ca3af;">Clan Name</label>
+        <input type="text" id="adminReserveClanInput" class="admin-popup-input"
+          style="display: block; width: 100%; margin-top: 4px;" placeholder="Enter Clan Name">
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <button id="adminReserveLogoBtn" class="btn btn-ghost"
+          style="width: 100%; font-size: 11px; justify-content: center;">
+          UPLOAD LOGO
+        </button>
+        <input type="file" id="adminReserveFile" accept="image/*" style="display:none">
+        <div id="slotModalLogoPreviewContainer" onclick="document.getElementById('adminReserveFile').click()">
+          <img id="slotModalLogoPreview" src="" alt="">
+        </div>
+        <p style="font-size: 9px; color: #6b7280; margin-top: 5px;">Tap circle to change logo</p>
+      </div>
+
+      <div class="admin-popup-buttons">
+        <button id="adminReserveSubmit" class="admin-popup-confirm" style="background: #2ecc71;">Submit</button>
+        <button id="adminReserveCancel" class="admin-popup-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div class="admin-popup" id="adminPopup">
     <div class="admin-popup-content">
       <h3 id="adminPopupTitle">Title</h3>
@@ -868,6 +953,18 @@
     const adminPopupConfirm = document.getElementById('adminPopupConfirm');
     const adminPopupCancel = document.getElementById('adminPopupCancel');
 
+    // Admin Reserve Elements
+    const adminReserveBtn = document.getElementById('adminReserveBtn');
+    const adminReserveModal = document.getElementById('adminReserveModal');
+    const adminReserveClanInput = document.getElementById('adminReserveClanInput');
+    const adminReserveFile = document.getElementById('adminReserveFile');
+    const adminReserveLogoBtn = document.getElementById('adminReserveLogoBtn');
+    const slotModalLogoPreview = document.getElementById('slotModalLogoPreview');
+    const slotModalLogoPreviewContainer = document.getElementById('slotModalLogoPreviewContainer');
+    const adminReserveSubmit = document.getElementById('adminReserveSubmit');
+    const adminReserveCancel = document.getElementById('adminReserveCancel');
+
+    let currentAdminLogoBase64 = '';
     let latestSlots = [];
     let latestScoreboardData = [];
     let adminPopupResolver = null;
@@ -974,7 +1071,7 @@
 
     async function loadAdminSlots() {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan,schedule_type&schedule_type=eq.${currentSched}&order=slot_number.asc`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan,clan_logo,schedule_type&schedule_type=eq.${currentSched}&order=slot_number.asc`, {
           headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         });
         const data = await res.json();
@@ -983,6 +1080,7 @@
           id: r.id,
           slot: r.slot_number,
           clan: r.clan || '',
+          logo: r.clan_logo || '',
           isFilled: !!(r.clan && r.clan.trim())
         }));
 
@@ -1407,12 +1505,31 @@
         topRow.appendChild(num);
         topRow.appendChild(status);
 
+        const clanRow = document.createElement('div');
+        clanRow.style.display = 'flex';
+        clanRow.style.alignItems = 'center';
+        clanRow.style.marginTop = '6px';
+
+        if (s.isFilled && s.logo) {
+          const logoDiv = document.createElement('div');
+          logoDiv.className = 'slot-logo-admin';
+          logoDiv.innerHTML = `<img src="${s.logo}" alt="Logo">`;
+          clanRow.appendChild(logoDiv);
+        } else if (s.isFilled) {
+          const logoDiv = document.createElement('div');
+          logoDiv.className = 'slot-logo-admin';
+          logoDiv.style.fontSize = '14px';
+          logoDiv.textContent = '🛡️';
+          clanRow.appendChild(logoDiv);
+        }
+
         const clan = document.createElement('div');
         clan.className = 'slot-clan';
         clan.textContent = s.isFilled ? s.clan : '—';
+        clanRow.appendChild(clan);
 
         card.appendChild(topRow);
-        card.appendChild(clan);
+        card.appendChild(clanRow);
 
         if (s.isFilled) {
           const actionsDiv = document.createElement('div');
@@ -1586,6 +1703,90 @@
         showAdminToast("GC Announcement copied!", 'success');
       }
     });
+
+    // --- ADMIN RESERVE LOGIC ---
+    adminReserveBtn.onclick = () => {
+      adminReserveClanInput.value = '';
+      currentAdminLogoBase64 = '';
+      slotModalLogoPreview.src = '';
+      slotModalLogoPreviewContainer.style.display = 'none';
+      adminReserveModal.style.display = 'flex';
+      adminReserveClanInput.focus();
+    };
+
+    adminReserveCancel.onclick = () => {
+      adminReserveModal.style.display = 'none';
+    };
+
+    adminReserveLogoBtn.onclick = () => adminReserveFile.click();
+
+    adminReserveFile.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const dataUrl = event.target.result;
+          slotModalLogoPreview.src = dataUrl;
+          slotModalLogoPreviewContainer.style.display = 'flex';
+
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX = 150;
+            let w = img.width, h = img.height;
+            if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
+            else { if (h > MAX) { w = w * MAX / h; h = MAX; } }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            currentAdminLogoBase64 = canvas.toDataURL('image/jpeg', 0.65);
+          };
+          img.src = dataUrl;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    adminReserveSubmit.onclick = async () => {
+      const clan = adminReserveClanInput.value.trim();
+      if (!clan) {
+        showAdminToast("Please enter a clan name.", "error");
+        return;
+      }
+
+      adminReserveSubmit.disabled = true;
+      try {
+        // Find first empty slot for current schedule
+        const empty = latestSlots.find(s => !s.isFilled);
+        if (!empty) {
+          showAdminToast("All slots are full!", "error");
+          adminReserveSubmit.disabled = false;
+          return;
+        }
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${empty.id}`, {
+          method: 'PATCH',
+          headers: supabaseHeaders(),
+          body: JSON.stringify({
+            clan,
+            clan_logo: currentAdminLogoBase64,
+            cancel_key: 'ADMIN' // Default PIN for admin reservations
+          }),
+        });
+
+        if (res.ok) {
+          showAdminToast(`Reserved Slot ${empty.slot} for "${clan}"`, 'success');
+          adminReserveModal.style.display = 'none';
+          loadAdminSlots();
+        } else {
+          showAdminToast("Failed to reserve slot.", "error");
+        }
+      } catch (e) {
+        console.error(e);
+        showAdminToast("Error making reservation.", "error");
+      } finally {
+        adminReserveSubmit.disabled = false;
+      }
+    };
 
     resetBtnAdmin.addEventListener('click', async () => {
       const { confirmed } = await openAdminPopup({
