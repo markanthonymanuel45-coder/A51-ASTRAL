@@ -505,13 +505,67 @@
       background: #374151;
       transform: translateY(-2px);
     }
+
+    /* ── Schedule Switcher ── */
+    .sched-switcher {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      margin: 0 auto 22px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50px;
+      padding: 5px;
+      width: fit-content;
+    }
+
+    .sched-btn {
+      position: relative;
+      padding: 9px 22px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #94a3b8;
+      transition: color 0.25s;
+      letter-spacing: 0.5px;
+      z-index: 1;
+    }
+
+    .sched-btn.active {
+      background: linear-gradient(135deg, #2ecc71, #16a085);
+      color: #0b0f14;
+      box-shadow: 0 4px 14px rgba(46, 204, 113, 0.45);
+    }
+
+    .sched-divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      margin: 0 2px;
+    }
   </style>
 </head>
 
 <body>
 
   <div class="container">
-    <h2>ASTRAL 51 CODM Scrim Slot Reservation</h2>
+    <h2 id="pageTitle">ASTRAL 51 CODM Scrim Slot Reservation</h2>
+
+    <!-- Schedule Fast-Switcher -->
+    <div class="sched-switcher">
+      <button class="sched-btn active" id="schedBtn8pm" onclick="switchSched('8pm')">
+        🌙 8:00 PM
+      </button>
+      <div class="sched-divider"></div>
+      <button class="sched-btn" id="schedBtn10pm" onclick="switchSched('10pm')">
+        🌃 10:00 PM
+      </button>
+    </div>
+
     <div class="buttons">
       <button id="mineBtn">MINE SLOT</button>
       <button id="cancelBtn">CANCEL SLOT</button>
@@ -646,9 +700,30 @@
       let currentSched = urlParams.get('sched') || '8pm';
       if (currentSched !== '8pm' && currentSched !== '10pm') currentSched = '8pm';
 
-      // Update Header
-      const h2 = document.querySelector('h2');
-      if (h2) h2.textContent = `A51 ASTRAL ${currentSched.toUpperCase()} Scrim Reservation`;
+      // Schedule Switcher Function
+      function switchSched(sched) {
+        currentSched = sched;
+
+        // Update button active states
+        document.getElementById('schedBtn8pm').classList.toggle('active', sched === '8pm');
+        document.getElementById('schedBtn10pm').classList.toggle('active', sched === '10pm');
+
+        // Update page title
+        const title = document.getElementById('pageTitle');
+        if (title) title.textContent = `A51 ASTRAL ${sched.toUpperCase()} Scrim Reservation`;
+
+        // Reload slots for the new schedule
+        loadSlots();
+        checkStatus();
+      }
+
+      // Init active button based on URL param
+      document.getElementById(`schedBtn${currentSched}`).classList.add('active');
+      document.getElementById(`schedBtn${currentSched === '8pm' ? '10pm' : '8pm'}`).classList.remove('active');
+
+      // Update Header on first load
+      const pageTitle = document.getElementById('pageTitle');
+      if (pageTitle) pageTitle.textContent = `A51 ASTRAL ${currentSched.toUpperCase()} Scrim Reservation`;
 
       // Holds latest slots data from the server
       let currentSlots = []; // Renamed from latestSlots for consistency
