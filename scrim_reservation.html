@@ -346,6 +346,83 @@
       background: #c0392b;
       box-shadow: 0 10px 25px rgba(231, 76, 60, 0.4);
     }
+
+    /* Confirmation Modal Styles */
+    #confirmModalContent {
+      background: radial-gradient(circle at top, #1f2933 0%, #020617 55%);
+      padding: 24px;
+      border-radius: 16px;
+      width: 300px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(231, 76, 60, 0.3);
+      animation: modalFadeIn 0.3s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .confirm-title {
+      color: #e74c3c;
+      font-size: 18px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .confirm-text {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .confirm-btn-yes {
+      flex: 1;
+      background: #e74c3c;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: 0.2s;
+    }
+
+    .confirm-btn-yes:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+    }
+
+    .confirm-btn-no {
+      flex: 1;
+      background: #4b5563;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: 0.2s;
+    }
+
+    .confirm-btn-no:hover {
+      background: #374151;
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 
@@ -394,6 +471,19 @@
       </div>
     </div>
 
+    <!-- CUSTOM CONFIRMATION MODAL -->
+    <div id="confirmModal"
+      style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 2000;">
+      <div id="confirmModalContent">
+        <div class="confirm-title">Are you sure?</div>
+        <div class="confirm-text" id="confirmText">Do you really want to cancel this reservation?</div>
+        <div class="confirm-buttons">
+          <button id="confirmYesBtn" class="confirm-btn-yes">Yes, Cancel</button>
+          <button id="confirmNoBtn" class="confirm-btn-no">No, Go Back</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       const SUPABASE_URL = 'https://yzdtszfubnastllfyczs.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6ZHRzemZ1Ym5hc3RsbGZ5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNzEyOTgsImV4cCI6MjA4NzY0NzI5OH0.GJz1ouXTbi3GQZYJa0756w4CgqabT9C2EH_mW_m_5TY';
@@ -414,6 +504,14 @@
       const cancelClanList = document.getElementById('cancelClanList');
       const cancelSubmitBtn = document.getElementById('cancelSubmitBtn');
       const cancelCloseBtn = document.getElementById('cancelCloseBtn');
+
+      // Custom Confirmation Modal elements
+      const confirmModal = document.getElementById('confirmModal');
+      const confirmText = document.getElementById('confirmText');
+      const confirmYesBtn = document.getElementById('confirmYesBtn');
+      const confirmNoBtn = document.getElementById('confirmNoBtn');
+
+      let pendingSlotId = null; // Store slot ID while waiting for confirmation
 
       // --- DUAL SCHEDULE LOGIC ---
       const urlParams = new URLSearchParams(window.location.search);
@@ -477,23 +575,31 @@
         cancelModal.style.display = 'none';
       };
 
-      cancelSubmitBtn.onclick = async () => {
+      cancelSubmitBtn.onclick = () => {
         const selectedRadio = document.querySelector('input[name="cancelClan"]:checked');
         if (!selectedRadio) {
           showPopup('Please select a clan!');
           return;
         }
 
-        const slotId = selectedRadio.value;
-        const clanName = selectedRadio.nextElementSibling.textContent;
+        pendingSlotId = selectedRadio.value;
+        const clanNameWithSlot = selectedRadio.nextElementSibling.innerText;
 
-        if (!confirm(`Are you sure you want to cancel the reservation for ${clanName}?`)) {
-          return;
-        }
+        confirmText.innerHTML = `You are about to cancel the reservation for:<br><strong style="color: #fff; display: block; margin-top: 8px;">${clanNameWithSlot}</strong>`;
+        confirmModal.style.display = 'flex';
+      };
 
-        cancelSubmitBtn.disabled = true;
+      confirmNoBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        pendingSlotId = null;
+      };
+
+      confirmYesBtn.onclick = async () => {
+        if (!pendingSlotId) return;
+
+        confirmYesBtn.disabled = true;
         try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${slotId}`, {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${pendingSlotId}`, {
             method: 'PATCH',
             headers: {
               apikey: SUPABASE_KEY,
@@ -506,12 +612,14 @@
           if (!res.ok) throw new Error('Failed to cancel reservation');
 
           showPopup('Reservation Cancelled!');
+          confirmModal.style.display = 'none';
           cancelModal.style.display = 'none';
           loadSlots();
         } catch (e) {
           showPopup('Error cancelling: ' + e.message);
         } finally {
-          cancelSubmitBtn.disabled = false;
+          confirmYesBtn.disabled = false;
+          pendingSlotId = null;
         }
       };
 
