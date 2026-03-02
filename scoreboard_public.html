@@ -6,6 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CODM Scrim Scoreboard</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -13,116 +19,54 @@
       color: #e5e7eb;
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 24px 12px;
+      padding: 28px 12px 40px;
     }
 
     .wrapper {
       width: 100%;
-      max-width: 960px;
+      max-width: 980px;
     }
 
+    /* ── Header ── */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-bottom: 10px;
+      margin-bottom: 14px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     h1 {
-      margin: 0;
-      font-size: 22px;
-      letter-spacing: 0.05em;
+      margin: 0 0 3px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #e5e7eb 30%, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .subtitle {
       font-size: 12px;
-      color: #9ca3af;
-    }
-
-    .card {
-      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), rgba(15, 23, 42, 0.96));
-      border-radius: 18px;
-      padding: 14px 14px 12px;
-      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.5);
-    }
-
-    .status {
-      font-size: 11px;
-      color: #9ca3af;
-      margin-bottom: 6px;
-    }
-
-    .status span {
-      font-weight: 600;
-      color: #e5e7eb;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      min-width: 540px;
-    }
-
-    thead tr {
-      background: rgba(15, 23, 42, 0.95);
-    }
-
-    th,
-    td {
-      padding: 6px 6px;
-      border-bottom: 1px solid rgba(55, 65, 81, 0.9);
-      text-align: center;
-    }
-
-    th:first-child,
-    td:first-child {
-      text-align: left;
-      padding-left: 10px;
-    }
-
-    tbody tr:nth-child(odd) {
-      background: rgba(15, 23, 42, 0.85);
-    }
-
-    tbody tr:nth-child(even) {
-      background: rgba(17, 24, 39, 0.85);
-    }
-
-    .rank-cell {
-      font-weight: 600;
-      color: #e5e7eb;
-      width: 36px;
-    }
-
-    .team-name {
-      font-weight: 600;
-      color: #f9fafb;
-    }
-
-    .total-cell {
-      font-weight: 700;
-      color: #facc15;
+      color: #6b7280;
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
+      gap: 5px;
+      padding: 4px 10px;
       border-radius: 999px;
       border: 1px solid rgba(55, 65, 81, 0.9);
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #9ca3af;
+      white-space: nowrap;
     }
 
     .badge-dot {
@@ -130,13 +74,366 @@
       height: 6px;
       border-radius: 999px;
       background: #22c55e;
+      animation: pulse-dot 2s infinite;
     }
 
-    .empty-state {
-      font-size: 12px;
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+      }
+    }
+
+    /* ── Schedule Switcher ── */
+    .sched-switcher {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      margin: 0 auto 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50px;
+      padding: 5px;
+      width: fit-content;
+    }
+
+    .sched-btn {
+      position: relative;
+      padding: 9px 24px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #94a3b8;
+      transition: color 0.25s, background 0.25s, box-shadow 0.25s;
+      letter-spacing: 0.5px;
+      z-index: 1;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .sched-btn.active {
+      background: linear-gradient(135deg, #2ecc71, #16a085);
+      color: #0b0f14;
+      box-shadow: 0 4px 14px rgba(46, 204, 113, 0.45);
+    }
+
+    .sched-divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      margin: 0 2px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), rgba(15, 23, 42, 0.96));
+      border-radius: 20px;
+      padding: 18px 16px 16px;
+      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .status {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status span {
+      font-weight: 600;
       color: #9ca3af;
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 540px;
+    }
+
+    thead tr {
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    th {
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(55, 65, 81, 0.9);
       text-align: center;
-      padding: 10px 0 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #6b7280;
+      font-weight: 700;
+    }
+
+    th:nth-child(2) {
+      text-align: left;
+      padding-left: 12px;
+    }
+
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+      text-align: center;
+      vertical-align: middle;
+      transition: background 0.2s;
+    }
+
+    td:nth-child(2) {
+      text-align: left;
+      padding-left: 12px;
+    }
+
+    tbody tr {
+      background: rgba(15, 23, 42, 0.6);
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background: rgba(37, 99, 235, 0.08);
+    }
+
+    /* ── Rank Cell ── */
+    .rank-cell {
+      font-weight: 700;
+      font-size: 13px;
+      width: 42px;
+      text-align: center;
+    }
+
+    /* ── Team Name ── */
+    .team-name {
+      font-weight: 700;
+      font-size: 13px;
+      color: #f9fafb;
+    }
+
+    /* ── Score Cells ── */
+    .score-cell {
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+
+    /* ── Total Cell ── */
+    .total-cell {
+      font-weight: 800;
+      font-size: 14px;
+      color: #facc15;
+    }
+
+    /* ══════════════════════════════════════
+       TOP 3 ROW HIGHLIGHTS
+    ══════════════════════════════════════ */
+
+    /* 🥇 RANK 1 — GOLD */
+    tbody tr.rank-1 {
+      background: linear-gradient(90deg, rgba(234, 179, 8, 0.18) 0%, rgba(234, 179, 8, 0.06) 60%, transparent 100%);
+      border-left: 3px solid #eab308;
+    }
+
+    tbody tr.rank-1:hover {
+      background: linear-gradient(90deg, rgba(234, 179, 8, 0.28) 0%, rgba(234, 179, 8, 0.10) 60%, transparent 100%);
+    }
+
+    tbody tr.rank-1 .rank-cell {
+      color: #fbbf24;
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+    }
+
+    tbody tr.rank-1 .team-name {
+      color: #fde68a;
+    }
+
+    tbody tr.rank-1 .total-cell {
+      color: #fbbf24;
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+    }
+
+    /* 🥈 RANK 2 — SILVER */
+    tbody tr.rank-2 {
+      background: linear-gradient(90deg, rgba(148, 163, 184, 0.16) 0%, rgba(148, 163, 184, 0.05) 60%, transparent 100%);
+      border-left: 3px solid #94a3b8;
+    }
+
+    tbody tr.rank-2:hover {
+      background: linear-gradient(90deg, rgba(148, 163, 184, 0.24) 0%, rgba(148, 163, 184, 0.08) 60%, transparent 100%);
+    }
+
+    tbody tr.rank-2 .rank-cell {
+      color: #cbd5e1;
+      text-shadow: 0 0 8px rgba(203, 213, 225, 0.5);
+    }
+
+    tbody tr.rank-2 .team-name {
+      color: #e2e8f0;
+    }
+
+    tbody tr.rank-2 .total-cell {
+      color: #cbd5e1;
+    }
+
+    /* 🥉 RANK 3 — BRONZE */
+    tbody tr.rank-3 {
+      background: linear-gradient(90deg, rgba(180, 83, 9, 0.18) 0%, rgba(180, 83, 9, 0.05) 60%, transparent 100%);
+      border-left: 3px solid #b45309;
+    }
+
+    tbody tr.rank-3:hover {
+      background: linear-gradient(90deg, rgba(180, 83, 9, 0.26) 0%, rgba(180, 83, 9, 0.08) 60%, transparent 100%);
+    }
+
+    tbody tr.rank-3 .rank-cell {
+      color: #d97706;
+      text-shadow: 0 0 8px rgba(217, 119, 6, 0.5);
+    }
+
+    tbody tr.rank-3 .team-name {
+      color: #fed7aa;
+    }
+
+    tbody tr.rank-3 .total-cell {
+      color: #f59e0b;
+    }
+
+    /* Non-top-3 rows get a subtle left border */
+    tbody tr:not(.rank-1):not(.rank-2):not(.rank-3) {
+      border-left: 3px solid transparent;
+    }
+
+    /* ── Trophy / Medal Icons ── */
+    .trophy-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #4b5563;
+      display: none;
+    }
+
+    .empty-state .empty-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      margin: 0;
+    }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(55, 65, 81, 0.5);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    .legend-dot.gold {
+      background: #eab308;
+    }
+
+    .legend-dot.silver {
+      background: #94a3b8;
+    }
+
+    .legend-dot.bronze {
+      background: #b45309;
+    }
+
+    /* ── Loading skeleton ── */
+    .skeleton-row td {
+      padding: 12px 8px;
+    }
+
+    .skeleton-cell {
+      height: 14px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 640px) {
+      body {
+        padding: 16px 8px 32px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .sched-btn {
+        padding: 8px 18px;
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        padding: 8px 4px;
+        font-size: 11px;
+      }
+
+      th:nth-child(2),
+      td:nth-child(2) {
+        padding-left: 8px;
+      }
+
+      .total-cell {
+        font-size: 12px;
+      }
+
+      table {
+        min-width: 480px;
+      }
     }
   </style>
 </head>
@@ -145,21 +442,35 @@
   <div class="wrapper">
     <div class="header">
       <div>
-        <h1>Scrim Scoreboard</h1>
-        <div class="subtitle">Live standings based on the latest saved admin scoreboard.</div>
+        <h1 id="pageTitle">Scrim Scoreboard</h1>
+        <div class="subtitle">Live standings · Sorted by total points</div>
       </div>
       <div class="badge">
         <span class="badge-dot"></span> Read-only view
       </div>
     </div>
 
+    <!-- ── Schedule Switcher ── -->
+    <div class="sched-switcher">
+      <button class="sched-btn active" id="schedBtn8pm" onclick="switchSched('8pm')">
+        🌙 8:00 PM
+      </button>
+      <div class="sched-divider"></div>
+      <button class="sched-btn" id="schedBtn10pm" onclick="switchSched('10pm')">
+        🌃 10:00 PM
+      </button>
+    </div>
+
     <div class="card">
-      <div class="status" id="statusText">Loading scoreboard…</div>
+      <div class="status" id="statusText">
+        <span>Loading scoreboard…</span>
+      </div>
+
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>RANK</th>
+              <th>Rank</th>
               <th>Team Name</th>
               <th>R1</th>
               <th>PP1</th>
@@ -167,16 +478,119 @@
               <th>PP2</th>
               <th>R3</th>
               <th>PP3</th>
-              <th>TOTAL</th>
+              <th>Total</th>
             </tr>
           </thead>
           <tbody id="scoreboardBody">
-            <!-- rows will be injected here -->
+            <!-- Skeleton rows while loading -->
+            <tr class="skeleton-row">
+              <td>
+                <div class="skeleton-cell" style="width:24px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:120px;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:36px; margin:auto;"></div>
+              </td>
+            </tr>
+            <tr class="skeleton-row">
+              <td>
+                <div class="skeleton-cell" style="width:24px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:90px;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:36px; margin:auto;"></div>
+              </td>
+            </tr>
+            <tr class="skeleton-row">
+              <td>
+                <div class="skeleton-cell" style="width:24px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:110px;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:28px; margin:auto;"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell" style="width:36px; margin:auto;"></div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div class="empty-state" id="emptyState" style="display:none;">
-        No saved scores yet. Please check back after the admin posts the results.
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🏆</div>
+        <p>No scores published yet.<br>Check back after the admin saves the scoreboard!</p>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend" id="legend" style="display:none;">
+        <div class="legend-item">
+          <div class="legend-dot gold"></div> 1st Place
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot silver"></div> 2nd Place
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot bronze"></div> 3rd Place
+        </div>
       </div>
     </div>
   </div>
@@ -185,21 +599,40 @@
     const SUPABASE_URL = 'https://yzdtszfubnastllfyczs.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6ZHRzemZ1Ym5hc3RsbGZ5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNzEyOTgsImV4cCI6MjA4NzY0NzI5OH0.GJz1ouXTbi3GQZYJa0756w4CgqabT9C2EH_mW_m_5TY';
 
-    const bodyEl = document.getElementById("scoreboardBody");
-    const statusText = document.getElementById("statusText");
-    const emptyState = document.getElementById("emptyState");
+    const bodyEl = document.getElementById('scoreboardBody');
+    const statusEl = document.getElementById('statusText');
+    const emptyEl = document.getElementById('emptyState');
+    const legendEl = document.getElementById('legend');
+    const pageTitle = document.getElementById('pageTitle');
+
+    // Medal icons for top 3
+    const MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
+    const RANK_CLASSES = { 1: 'rank-1', 2: 'rank-2', 3: 'rank-3' };
+
+    // --- Schedule Switcher ---
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentSched = urlParams.get('sched') || '8pm';
+    if (currentSched !== '8pm' && currentSched !== '10pm') currentSched = '8pm';
+
+    function switchSched(sched) {
+      currentSched = sched;
+      document.getElementById('schedBtn8pm').classList.toggle('active', sched === '8pm');
+      document.getElementById('schedBtn10pm').classList.toggle('active', sched === '10pm');
+      // Update URL without reload
+      const url = new URL(window.location);
+      url.searchParams.set('sched', sched);
+      window.history.replaceState({}, '', url);
+      loadPublicScoreboard();
+    }
+
+    // Init button states
+    document.getElementById('schedBtn8pm').classList.toggle('active', currentSched === '8pm');
+    document.getElementById('schedBtn10pm').classList.toggle('active', currentSched === '10pm');
 
     function safeNumber(v) {
       const n = parseInt(v, 10);
       return isNaN(n) ? 0 : n;
     }
-
-    const urlParams = new URLSearchParams(window.location.search);
-    let currentSched = urlParams.get('sched') || '8pm';
-    if (currentSched !== '8pm' && currentSched !== '10pm') currentSched = '8pm';
-
-    // Update title
-    document.querySelector('h1').textContent = `Scoreboard (${currentSched.toUpperCase()})`;
 
     async function loadPublicScoreboard() {
       try {
@@ -211,52 +644,81 @@
             headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
           }),
         ]);
+
         const rows = await scoreRes.json();
         const dateRows = await dateRes.json();
         const gameDate = (dateRows && dateRows[0] && dateRows[0].value) ? String(dateRows[0].value) : '';
-
         const list = Array.isArray(rows) ? rows : [];
+
+        // Update page title
+        pageTitle.textContent = `Scoreboard · ${currentSched.toUpperCase()}`;
+
         if (!list.length) {
-          bodyEl.innerHTML = "";
-          emptyState.style.display = "block";
-          statusText.textContent = gameDate ? `No scores for ${currentSched.toUpperCase()} (${gameDate})` : `No ${currentSched.toUpperCase()} scores published.`;
+          bodyEl.innerHTML = '';
+          emptyEl.style.display = 'block';
+          legendEl.style.display = 'none';
+          statusEl.innerHTML = gameDate
+            ? `No scores for <span>${currentSched.toUpperCase()}</span> on <span>${gameDate}</span>`
+            : `No <span>${currentSched.toUpperCase()}</span> scores published yet.`;
           return;
         }
 
+        // Sort by TOTAL descending
         list.sort((a, b) => safeNumber(b.total) - safeNumber(a.total));
-        bodyEl.innerHTML = "";
-        emptyState.style.display = "none";
+
+        bodyEl.innerHTML = '';
+        emptyEl.style.display = 'none';
+        legendEl.style.display = 'flex';
 
         list.forEach((row, idx) => {
-          const tr = document.createElement("tr");
-          const makeCell = (val, className) => {
-            const td = document.createElement("td");
-            td.textContent = (val === null || val === undefined || val === '') ? "" : String(val);
+          const rank = idx + 1;
+          const rankClass = RANK_CLASSES[rank] || '';
+          const medal = MEDALS[rank] ? `<span class="trophy-icon">${MEDALS[rank]}</span>` : rank;
+
+          const tr = document.createElement('tr');
+          if (rankClass) tr.classList.add(rankClass);
+
+          const makeCell = (content, className) => {
+            const td = document.createElement('td');
+            td.innerHTML = (content === null || content === undefined || content === '')
+              ? '<span style="color:#374151;">—</span>'
+              : String(content);
             if (className) td.className = className;
             return td;
           };
-          tr.appendChild(makeCell(idx + 1, "rank-cell"));
-          tr.appendChild(makeCell(row.team, "team-name"));
-          tr.appendChild(makeCell(row.r1));
-          tr.appendChild(makeCell(row.pp1));
-          tr.appendChild(makeCell(row.r2));
-          tr.appendChild(makeCell(row.pp2));
-          tr.appendChild(makeCell(row.r3));
-          tr.appendChild(makeCell(row.pp3));
-          tr.appendChild(makeCell(row.total, "total-cell"));
+
+          // Rank cell (medal or number)
+          const rankTd = document.createElement('td');
+          rankTd.className = 'rank-cell';
+          rankTd.innerHTML = medal;
+
+          tr.appendChild(rankTd);
+          tr.appendChild(makeCell(row.team, 'team-name'));
+          tr.appendChild(makeCell(row.r1, 'score-cell'));
+          tr.appendChild(makeCell(row.pp1, 'score-cell'));
+          tr.appendChild(makeCell(row.r2, 'score-cell'));
+          tr.appendChild(makeCell(row.pp2, 'score-cell'));
+          tr.appendChild(makeCell(row.r3, 'score-cell'));
+          tr.appendChild(makeCell(row.pp3, 'score-cell'));
+          tr.appendChild(makeCell(row.total, 'total-cell'));
+
           bodyEl.appendChild(tr);
         });
 
-        statusText.textContent = gameDate
-          ? `[${currentSched.toUpperCase()}] Game date: ${gameDate} · Sorted by TOTAL.`
-          : `[${currentSched.toUpperCase()}] Sorted by TOTAL.`;
+        const dateStr = gameDate ? ` · <span>${gameDate}</span>` : '';
+        statusEl.innerHTML = `Schedule: <span>${currentSched.toUpperCase()}</span>${dateStr} · Sorted by TOTAL`;
+
       } catch (e) {
         console.error(e);
-        statusText.textContent = "Error loading scoreboard.";
+        statusEl.innerHTML = '<span style="color:#f97316;">Error loading scoreboard. Please refresh.</span>';
       }
     }
 
+    // Initial load
     loadPublicScoreboard();
+
+    // Auto-refresh every 30 seconds
+    setInterval(loadPublicScoreboard, 30000);
   </script>
 </body>
 
