@@ -31,6 +31,85 @@
       text-shadow: 0 0 6px rgba(46, 204, 113, 0.5);
     }
 
+    /* ── Sticky Status Banner ── */
+    #statusBanner {
+      position: sticky;
+      top: 10px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      margin: 0 0 24px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #statusBanner.open {
+      background: rgba(46, 204, 113, 0.15);
+      border-color: rgba(46, 204, 113, 0.4);
+      color: #2ecc71;
+    }
+
+    #statusBanner.closed {
+      background: rgba(231, 76, 60, 0.1);
+      border-color: rgba(231, 76, 60, 0.3);
+      color: #e74c3c;
+    }
+
+    .status-main {
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .status-sub {
+      font-size: 12px;
+      opacity: 0.9;
+      font-weight: 500;
+      color: #94a3b8;
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .open .pulse-dot {
+      animation: pulse-green 2s infinite;
+    }
+
+    @keyframes pulse-green {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+      }
+
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+      }
+
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+      }
+    }
+
     .buttons {
       display: flex;
       justify-content: center;
@@ -47,15 +126,39 @@
       transition: 0.2s;
     }
 
+    .btn {
+      padding: 10px 16px;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
     #mineBtn {
       background: #2ecc71;
       color: #0b0f14;
       box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
     }
 
-    #mineBtn:hover {
+    #mineBtn:hover:not(:disabled) {
       background: #27ae60;
       transform: translateY(-2px);
+    }
+
+    #mineBtn:disabled {
+      background: #374151;
+      color: #94a3b8;
+      box-shadow: none;
+      cursor: not-allowed;
     }
 
     #cancelBtn {
@@ -68,12 +171,6 @@
     #cancelBtn:hover {
       background: #c0392b;
       transform: translateY(-2px);
-    }
-
-    #cancelBtn:disabled {
-      background: #4b5563;
-      cursor: not-allowed;
-      box-shadow: none;
     }
 
     #slots {
@@ -157,7 +254,6 @@
       background: rgba(255, 255, 255, 0.05);
       border: 2px dashed #94a3b8;
       display: none;
-      /* hidden until logo uploaded — JS sets to flex */
       justify-content: center;
       align-items: center;
       cursor: pointer;
@@ -165,7 +261,6 @@
       overflow: hidden;
       transition: border-color 0.2s, background 0.2s;
       -webkit-tap-highlight-color: transparent;
-      /* removes tap flash on mobile */
     }
 
     #logoPreviewContainer:hover {
@@ -195,7 +290,7 @@
       backdrop-filter: blur(6px);
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 2000;
     }
 
     #clanModalContent {
@@ -284,13 +379,6 @@
       box-shadow: 0 8px 20px rgba(15, 23, 42, 0.7);
     }
 
-    #successMessage {
-      display: none;
-      margin-top: 12px;
-      color: #2ecc71;
-      font-weight: 700;
-    }
-
     /* Success Popup */
     .success-popup {
       position: fixed;
@@ -304,37 +392,7 @@
       border-radius: 12px;
       font-weight: 700;
       font-size: 16px;
-      z-index: 2000;
-      box-shadow: 0 8px 30px rgba(46, 204, 113, 0.4);
-      animation: popupSlideIn 0.3s ease-out;
-    }
-
-    @keyframes popupSlideIn {
-      from {
-        opacity: 0;
-        transform: translate(-50%, -60%);
-      }
-
-      to {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-      }
-    }
-
-    /* Success Popup */
-    .success-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #063a1b;
-      border: 2px solid #2ecc71;
-      color: #fff;
-      padding: 20px 30px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 16px;
-      z-index: 2000;
+      z-index: 3000;
       box-shadow: 0 8px 30px rgba(46, 204, 113, 0.4);
       animation: popupSlideIn 0.3s ease-out;
     }
@@ -352,6 +410,16 @@
     }
 
     @media(max-width:640px) {
+      .container {
+        margin: 10px auto;
+        padding: 16px;
+        width: 95%;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+
       #slots {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -364,20 +432,17 @@
       }
 
       #logoPreviewContainer {
-        width: 90px;
-        height: 90px;
+        width: 70px;
+        height: 70px;
       }
 
-      .btn {
-        min-height: 44px;
-        /* Proper touch target size */
-        font-size: 13px;
+      #statusBanner {
+        padding: 10px;
+        margin-bottom: 16px;
       }
 
-      #cancelModalContent {
-        width: 92%;
-        max-height: 90vh;
-        overflow-y: auto;
+      .status-main {
+        font-size: 14px;
       }
     }
 
@@ -412,11 +477,6 @@
       margin-right: 12px;
       accent-color: #e74c3c;
       transform: scale(1.2);
-    }
-
-    .clan-option span {
-      font-size: 14px;
-      color: #e6eef8;
     }
 
     #cancelSubmitBtn {
@@ -506,6 +566,96 @@
       transform: translateY(-2px);
     }
 
+    /* ── Sticky Status Pill (Compact & Premium) ── */
+    #statusBanner {
+      position: sticky;
+      top: 15px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 32px;
+      border-radius: 50px;
+      /* Pill Shape */
+      margin: 0 auto 28px;
+      width: fit-content;
+      /* Hindi na pahaba */
+      min-width: 240px;
+      background: rgba(15, 23, 32, 0.8);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #statusBanner.open {
+      border-color: rgba(46, 204, 113, 0.4);
+      box-shadow: 0 10px 30px rgba(46, 204, 113, 0.15);
+    }
+
+    #statusBanner.closed {
+      border-color: rgba(231, 76, 60, 0.3);
+      box-shadow: 0 10px 30px rgba(231, 76, 60, 0.1);
+    }
+
+    .status-main {
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 1.5px;
+      margin-bottom: 2px;
+    }
+
+    .open .status-main {
+      color: #2ecc71;
+    }
+
+    .closed .status-main {
+      color: #e74c3c;
+    }
+
+    .status-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 0.5px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .open .pulse-dot {
+      background: #2ecc71;
+      box-shadow: 0 0 12px #2ecc71;
+      animation: pulse-ring 2s infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+      }
+    }
+
     /* ── Schedule Switcher ── */
     .sched-switcher {
       display: flex;
@@ -555,583 +705,366 @@
   <div class="container">
     <h2 id="pageTitle">ASTRAL 51 CODM Scrim Slot Reservation</h2>
 
+    <!-- ── Sticky Reservation Status Banner ── -->
+    <div id="statusBanner" class="closed">
+      <div class="status-main">
+        <span class="pulse-dot"></span>
+        <span id="statusText">Checking status…</span>
+      </div>
+      <div id="countdownText" class="status-sub"></div>
+    </div>
+
     <!-- Schedule Fast-Switcher -->
     <div class="sched-switcher">
-      <button class="sched-btn active" id="schedBtn8pm" onclick="switchSched('8pm')">
-        🌙 8:00 PM
-      </button>
+      <button class="sched-btn active" id="schedBtn8pm" onclick="switchSched('8pm')">🌙 8:00 PM</button>
       <div class="sched-divider"></div>
-      <button class="sched-btn" id="schedBtn10pm" onclick="switchSched('10pm')">
-        🌃 10:00 PM
-      </button>
+      <button class="sched-btn" id="schedBtn10pm" onclick="switchSched('10pm')">🌃 10:00 PM</button>
     </div>
 
     <div class="buttons">
       <button id="mineBtn">MINE SLOT</button>
       <button id="cancelBtn">CANCEL SLOT</button>
     </div>
+
     <div id="slots"></div>
-    <div
-      style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#6b7280;">
-      <span id="statusText">Checking reservation status…</span>
-    </div>
+  </div>
 
-    <!-- MODAL -->
-    <div id="clanModal">
-      <div id="clanModalContent">
-        <h3>Reserve Slot</h3>
-
-        <div style="margin-bottom: 15px; text-align: left;">
-          <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px;">Clan Name</label>
-          <input type="text" id="clanInput" placeholder="Enter Clan Name" style="width: 100%; box-sizing: border-box;">
-        </div>
-
-        <div style="margin-bottom: 20px; text-align: left;">
-          <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px;">Cancellation PIN (4
-            Digits)</label>
-          <input type="password" id="pinInput" maxlength="4" placeholder="••••"
-            style="width: 100%; box-sizing: border-box; text-align: center; letter-spacing: 5px; font-size: 18px;">
-          <small style="font-size: 10px; color: #64748b; display: block; margin-top: 5px;">Choose a PIN to protect your
-            slot from being cancelled by others.</small>
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-          <button id="uploadLogoBtn" class="btn btn-ghost" style="flex: 1; font-size: 11px;">
-            <span id="uploadStatusText">CHANGE LOGO</span>
-          </button>
-          <input type="file" id="logoFile" accept="image/*" style="display:none">
-        </div>
-
-        <div id="logoPreviewContainer" onclick="logoFile.click()" title="Tap to change logo">
-          <img id="logoPreview" src="" alt="">
-        </div>
-        <p class="upload-hint">Tap circle to change logo</p>
-
-        <div style="display: flex; gap: 10px;">
-          <button id="clanSubmitBtn" class="btn" style="flex: 2; background: #3b82f6;">SUBMIT</button>
-          <button id="clanCancelBtn" class="btn btn-ghost" style="flex: 1;">CLOSE</button>
-        </div>
+  <!-- MODAL -->
+  <div id="clanModal">
+    <div id="clanModalContent">
+      <h3>Reserve Slot</h3>
+      <div style="margin-bottom: 15px; text-align: left;">
+        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px;">Clan Name</label>
+        <input type="text" id="clanInput" placeholder="Enter Clan Name" style="width: 100%; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 20px; text-align: left;">
+        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px;">Cancellation PIN (4
+          Digits)</label>
+        <input type="password" id="pinInput" maxlength="4" placeholder="••••"
+          style="width: 100%; box-sizing: border-box; text-align: center; letter-spacing: 5px; font-size: 18px;">
+        <small style="font-size: 10px; color: #64748b; display: block; margin-top: 5px;">Choose a PIN to protect your
+          slot.</small>
+      </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button id="uploadLogoBtn" class="btn btn-ghost" style="flex: 1; font-size: 11px;">
+          <span id="uploadStatusText">UPLOAD LOGO</span>
+        </button>
+        <input type="file" id="logoFile" accept="image/*" style="display:none">
+      </div>
+      <div id="logoPreviewContainer" onclick="logoFile.click()" title="Tap to change logo">
+        <img id="logoPreview" src="" alt="">
+      </div>
+      <p class="upload-hint">Tap circle to change logo</p>
+      <div style="display: flex; gap: 10px;">
+        <button id="clanSubmitBtn" class="btn" style="flex: 2; background: #2ecc71; color: #0b0f14;">SUBMIT</button>
+        <button id="clanCancelBtn" class="btn btn-ghost" style="flex: 1;">CLOSE</button>
       </div>
     </div>
+  </div>
 
-    <!-- CANCEL MODAL -->
-    <div id="cancelModal"
-      style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 32, 0.85); backdrop-filter: blur(6px); justify-content: center; align-items: center; z-index: 1000;">
-      <div id="cancelModalContent"
-        style="background: radial-gradient(circle at top, #1f2933 0%, #020617 55%); padding: 20px 20px 16px; border-radius: 16px; width: 320px; text-align: center; position: relative; box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.4);">
-        <h3>Cancel Reservation</h3>
-        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Select your clan to cancel your slot:</p>
-        <div id="cancelList"
-          style="text-align: left; margin-bottom: 20px; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-          <!-- Radio buttons will manifest here -->
-        </div>
-
-        <div id="pinVerificationSection"
-          style="display:none; margin-top: 15px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-          <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px;">Enter your 4-Digit PIN to
-            verify:</label>
-          <input type="password" id="cancelPinInput" maxlength="4" placeholder="••••"
-            style="width: 100%; box-sizing: border-box; text-align: center; letter-spacing: 5px; font-size: 18px; margin-bottom: 15px;">
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-          <button id="cancelSubmitBtn" class="btn" style="flex: 2; background: #e74c3c;">SUBMIT CANCELLATION</button>
-          <button id="cancelCloseBtn" class="btn btn-ghost" style="flex: 1;">CLOSE</button>
-        </div>
+  <!-- CANCEL MODAL -->
+  <div id="cancelModal"
+    style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 32, 0.85); backdrop-filter: blur(6px); justify-content: center; align-items: center; z-index: 2000;">
+    <div id="cancelModalContent"
+      style="background: radial-gradient(circle at top, #1f2933 0%, #020617 55%); padding: 20px 20px 16px; border-radius: 16px; width: 320px; text-align: center; position: relative; box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.4);">
+      <h3>Cancel Reservation</h3>
+      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Select your clan to cancel your slot:</p>
+      <div id="cancelList"
+        style="text-align: left; margin-bottom: 20px; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+      </div>
+      <div id="pinVerificationSection"
+        style="display:none; margin-top: 15px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px;">Enter your 4-Digit
+          PIN:</label>
+        <input type="password" id="cancelPinInput" maxlength="4" placeholder="••••"
+          style="width: 100%; box-sizing: border-box; text-align: center; letter-spacing: 5px; font-size: 18px; margin-bottom: 15px;">
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button id="cancelSubmitBtn" class="btn" style="flex: 2; background: #e74c3c;">SUBMIT CANCELLATION</button>
+        <button id="cancelCloseBtn" class="btn btn-ghost" style="flex: 1;">CLOSE</button>
       </div>
     </div>
+  </div>
 
-    <!-- CUSTOM CONFIRMATION MODAL -->
-    <div id="confirmModal"
-      style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 2000;">
-      <div id="confirmModalContent">
-        <div class="confirm-title">Are you sure?</div>
-        <div class="confirm-text" id="confirmMessage">Do you really want to cancel this reservation?</div>
-        <div class="confirm-buttons">
-          <button id="confirmYes" class="confirm-btn-yes">Yes, Cancel</button>
-          <button id="confirmNo" class="confirm-btn-no">No, Go Back</button>
-        </div>
+  <!-- CUSTOM CONFIRMATION MODAL -->
+  <div id="confirmModal"
+    style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 3000;">
+    <div id="confirmModalContent">
+      <div class="confirm-title">Are you sure?</div>
+      <div class="confirm-text" id="confirmMessage">Do you really want to cancel this reservation?</div>
+      <div class="confirm-buttons">
+        <button id="confirmYes" class="confirm-btn-yes">Yes, Cancel</button>
+        <button id="confirmNo" class="confirm-btn-no">No, Go Back</button>
       </div>
     </div>
+  </div>
 
-    <script>
-      const SUPABASE_URL = 'https://yzdtszfubnastllfyczs.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6ZHRzemZ1Ym5hc3RsbGZ5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNzEyOTgsImV4cCI6MjA4NzY0NzI5OH0.GJz1ouXTbi3GQZYJa0756w4CgqabT9C2EH_mW_m_5TY';
-      const MAX_SLOTS = 25;
+  <script>
+    const SUPABASE_URL = 'https://yzdtszfubnastllfyczs.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6ZHRzemZ1Ym5hc3RsbGZ5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNzEyOTgsImV4cCI6MjA4NzY0NzI5OH0.GJz1ouXTbi3GQZYJa0756w4CgqabT9C2EH_mW_m_5TY';
+    const MAX_SLOTS = 25;
 
-      const slotsEl = document.getElementById('slots');
-      const clanModal = document.getElementById('clanModal');
-      const clanInput = document.getElementById('clanInput');
-      const pinInput = document.getElementById('pinInput');
-      const logoFile = document.getElementById('logoFile');
-      const uploadLogoBtn = document.getElementById('uploadLogoBtn');
-      const uploadStatusText = document.getElementById('uploadStatusText');
-      const logoPreview = document.getElementById('logoPreview');
-      const logoPreviewContainer = document.getElementById('logoPreviewContainer');
-      const clanSubmitBtn = document.getElementById('clanSubmitBtn');
-      const submitClan = clanSubmitBtn; // alias — code uses both names
-      const clanCancelBtn = document.getElementById('clanCancelBtn');
-      const mineBtn = document.getElementById('mineBtn');
-      const cancelBtn = document.getElementById('cancelBtn');
-      const statusText = document.getElementById('statusText');
+    const slotsEl = document.getElementById('slots');
+    const clanModal = document.getElementById('clanModal');
+    const clanInput = document.getElementById('clanInput');
+    const pinInput = document.getElementById('pinInput');
+    const logoFile = document.getElementById('logoFile');
+    const uploadLogoBtn = document.getElementById('uploadLogoBtn');
+    const uploadStatusText = document.getElementById('uploadStatusText');
+    const logoPreview = document.getElementById('logoPreview');
+    const logoPreviewContainer = document.getElementById('logoPreviewContainer');
+    const clanSubmitBtn = document.getElementById('clanSubmitBtn');
+    const clanCancelBtn = document.getElementById('clanCancelBtn');
+    const mineBtn = document.getElementById('mineBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const statusText = document.getElementById('statusText');
+    const countdownText = document.getElementById('countdownText');
+    const statusBanner = document.getElementById('statusBanner');
 
-      let currentLogoBase64 = ''; // Store the logo as string
+    let currentLogoBase64 = '';
+    let currentSlotToMine = null;
+    let selectedSlotIdToCancel = null;
+    let currentSlots = [];
+    let closeTime = null; // Store as {h, m}
+    let openTime = null;  // Store as {h, m}
+    let isCurrentlyOpen = false;
 
-      // Cancel Modal elements
-      const cancelModal = document.getElementById('cancelModal');
-      const cancelList = document.getElementById('cancelList');
-      const cancelSubmitBtn = document.getElementById('cancelSubmitBtn');
-      const cancelCloseBtn = document.getElementById('cancelCloseBtn');
-      const cancelPinInput = document.getElementById('cancelPinInput');
-      const pinVerificationSection = document.getElementById('pinVerificationSection');
+    // --- DUAL SCHEDULE LOGIC ---
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentSched = urlParams.get('sched') || '8pm';
+    if (currentSched !== '8pm' && currentSched !== '10pm') currentSched = '8pm';
 
-      // Custom Confirmation Modal elements
-      const confirmModal = document.getElementById('confirmModal');
-      const confirmMessage = document.getElementById('confirmMessage');
-      const confirmYes = document.getElementById('confirmYes');
-      const confirmNo = document.getElementById('confirmNo');
-
-      let currentSlotToMine = null; // Store slot ID when reserving
-      let selectedSlotIdToCancel = null; // Store slot ID when cancelling
-      let selectedSlotDetails = null; // Store details of the slot being cancelled
-
-      // --- DUAL SCHEDULE LOGIC ---
-      const urlParams = new URLSearchParams(window.location.search);
-      let currentSched = urlParams.get('sched') || '8pm';
-      if (currentSched !== '8pm' && currentSched !== '10pm') currentSched = '8pm';
-
-      // Schedule Switcher Function
-      function switchSched(sched) {
-        currentSched = sched;
-
-        // Update button active states
-        document.getElementById('schedBtn8pm').classList.toggle('active', sched === '8pm');
-        document.getElementById('schedBtn10pm').classList.toggle('active', sched === '10pm');
-
-        // Update page title
-        const title = document.getElementById('pageTitle');
-        if (title) title.textContent = `A51 ASTRAL ${sched.toUpperCase()} Scrim Reservation`;
-
-        // Reload slots for the new schedule
-        loadSlots();
-        checkStatus();
-      }
-
-      // Init active button based on URL param
-      document.getElementById(`schedBtn${currentSched}`).classList.add('active');
-      document.getElementById(`schedBtn${currentSched === '8pm' ? '10pm' : '8pm'}`).classList.remove('active');
-
-      // Update Header on first load
-      const pageTitle = document.getElementById('pageTitle');
-      if (pageTitle) pageTitle.textContent = `A51 ASTRAL ${currentSched.toUpperCase()} Scrim Reservation`;
-
-      // Holds latest slots data from the server
-      let currentSlots = []; // Renamed from latestSlots for consistency
-
-      // Helper for Supabase headers
-      const supabaseHeaders = () => ({
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-      });
-
-      // Show Modal
-      mineBtn.onclick = async () => {
-        // Find first empty slot
-        const empty = currentSlots.find(s => !s.clan);
-        if (!empty) {
-          showPopup(`All slots full for ${currentSched.toUpperCase()}!`);
-          return;
-        }
-        currentSlotToMine = empty.id;
-        clanInput.value = '';
-        pinInput.value = '';
-        currentLogoBase64 = '';
-        logoPreview.src = '';
-        logoPreviewContainer.style.display = 'none';
-        uploadStatusText.textContent = 'UPLOAD LOGO';
-        clanSubmitBtn.disabled = false;
-        clanSubmitBtn.textContent = 'SUBMIT';
-        clanModal.style.display = 'flex';
-        clanInput.focus();
-      }
-
-      // Handle Logo Upload, Resize and Preview
-      uploadLogoBtn.onclick = () => logoFile.click();
-
-      logoFile.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          if (file.size > 5 * 1024 * 1024) {
-            showPopup('File too large! Max 5MB.');
-            return;
-          }
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            const dataUrl = event.target.result;
-
-            // ✅ Show preview IMMEDIATELY from FileReader (no canvas delay)
-            logoPreview.src = dataUrl;
-            logoPreviewContainer.style.display = 'flex';
-            uploadStatusText.textContent = 'CHANGE LOGO';
-
-            // Compress in background for saving to Supabase
-            const img = new Image();
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              const MAX = 150;
-              let w = img.width, h = img.height;
-              if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
-              else { if (h > MAX) { w = w * MAX / h; h = MAX; } }
-              canvas.width = Math.round(w);
-              canvas.height = Math.round(h);
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-              currentLogoBase64 = canvas.toDataURL('image/jpeg', 0.65);
-            };
-            img.onerror = () => {
-              // If canvas fails, use the raw data URL
-              currentLogoBase64 = dataUrl;
-            };
-            img.src = dataUrl;
-          };
-          reader.onerror = () => showPopup('Could not read image file.');
-          reader.readAsDataURL(file);
-        }
-      };
-
-      // Cancel Modal
-      clanCancelBtn.onclick = () => clanModal.style.display = 'none';
-
-      // Cancel Slot Logic
-      cancelBtn.onclick = async () => {
-        try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan,cancel_key&schedule_type=eq.${currentSched}&clan=neq.&clan=not.is.null&order=slot_number.asc`, {
-            headers: supabaseHeaders(),
-          });
-          const filled = await res.json();
-
-          if (!filled || filled.length === 0) {
-            showPopup("No reservations to cancel!");
-            return;
-          }
-
-          cancelList.innerHTML = '';
-          filled.forEach(s => {
-            const div = document.createElement('div');
-            div.className = 'clan-option'; // Reusing existing style
-            div.innerHTML = `
-              <input type="radio" name="cancelSlot" id="slot_${s.id}" value="${s.id}" data-key="${s.cancel_key}" data-name="${s.clan}" data-num="${s.slot_number}">
-              <label for="slot_${s.id}"><span><strong>Slot ${s.slot_number}:</strong> ${s.clan}</span></label>
-            `;
-            // Trigger PIN section when a selection is made
-            div.querySelector('input').onchange = () => {
-              pinVerificationSection.style.display = 'block';
-              cancelPinInput.value = "";
-              cancelPinInput.focus();
-            };
-            cancelList.appendChild(div);
-          });
-
-          cancelPinInput.value = "";
-          pinVerificationSection.style.display = 'none';
-          cancelModal.style.display = 'flex';
-        } catch (e) {
-          showPopup('Error loading clans: ' + e.message);
-        }
-      };
-
-      cancelCloseBtn.onclick = () => {
-        cancelModal.style.display = 'none';
-      };
-
-      cancelSubmitBtn.onclick = () => {
-        const selected = document.querySelector('input[name="cancelSlot"]:checked');
-        if (!selected) {
-          showPopup("Please select a slot to cancel.");
-          return;
-        }
-
-        const inputPin = cancelPinInput.value.trim();
-        const correctPin = selected.getAttribute('data-key');
-
-        if (inputPin !== correctPin) {
-          showPopup("Incorrect PIN! You are not authorized to cancel this slot.");
-          return;
-        }
-
-        selectedSlotIdToCancel = selected.value;
-        const clanName = selected.getAttribute('data-name');
-        const slotNum = selected.getAttribute('data-num');
-
-        // Show our custom confirmation modal
-        confirmMessage.innerHTML = `Are you sure you want to cancel <br><strong>Slot ${slotNum}: ${clanName}</strong>?`;
-        confirmModal.style.display = 'flex';
-      };
-
-      confirmNo.onclick = () => {
-        confirmModal.style.display = 'none';
-        selectedSlotIdToCancel = null;
-      };
-
-      confirmYes.onclick = async () => {
-        if (!selectedSlotIdToCancel) return;
-
-        confirmYes.disabled = true;
-        try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${selectedSlotIdToCancel}`, {
-            method: 'PATCH',
-            headers: {
-              ...supabaseHeaders(),
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ clan: '', clan_logo: null, cancel_key: null }),
-          });
-
-          if (!res.ok) throw new Error('Failed to cancel reservation');
-
-          showPopup('Reservation Cancelled!');
-          confirmModal.style.display = 'none';
-          cancelModal.style.display = 'none';
-          selectedSlotIdToCancel = null;
-          loadSlots();
-        } catch (e) {
-          showPopup('Error cancelling: ' + e.message);
-        } finally {
-          confirmYes.disabled = false;
-        }
-      };
-
-      // Show Custom Popup
-      function showPopup(message, duration = 1000) {
-        const popup = document.createElement('div');
-        popup.className = 'success-popup';
-        popup.textContent = message;
-        document.body.appendChild(popup);
-        setTimeout(() => popup.remove(), duration);
-      }
-
-      // Submit Clan
-      submitClan.onclick = async () => {
-        const clan = clanInput.value.trim();
-        if (!clan) {
-          showPopup('Enter a Clan Name!');
-          return;
-        }
-
-        // Normalize for comparison (case-insensitive)
-        const normalizedClan = clan.toUpperCase();
-        const [normalizedTag] = normalizedClan.split(/\s+/);
-
-        // Enforce: max 3 teams per clan tag and no exact duplicate team name
-        // Use currentSlots (from last loadSlots) for validation
-        const slotsForValidation = Array.isArray(currentSlots) ? currentSlots : [];
-        if (slotsForValidation.length) {
-          const existingNames = slotsForValidation
-            .filter(s => s && s.clan)
-            .map(s => s.clan.toString().trim().toUpperCase());
-
-          // Reject exact duplicate team name
-          if (existingNames.includes(normalizedClan)) {
-            showPopup('That team name is already reserved.');
-            return;
-          }
-
-          // Count how many teams share the same first word/tag (e.g. "A51")
-          const sameTagCount = existingNames.filter(name => {
-            const [tag] = name.split(/\s+/);
-            return tag === normalizedTag;
-          }).length;
-
-          if (sameTagCount >= 3) {
-            showPopup(`Only 3 teams allowed for clan ${normalizedTag}.`);
-            return;
-          }
-        }
-        submitClan.disabled = true;
-        try {
-          // Find first empty slot for the CURRENT schedule
-          const listRes = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan,schedule_type&schedule_type=eq.${currentSched}&order=slot_number.asc`, {
-            headers: {
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
-            }
-          });
-          const list = await listRes.json();
-          const emptyRow = list.find(r => !r.clan || r.clan.toString().trim() === '');
-          if (!emptyRow) {
-            showPopup(`All slots full for ${currentSched.toUpperCase()}!`);
-            submitClan.disabled = false;
-            return;
-          }
-          const pinValue = pinInput.value.trim();
-          if (!pinValue || pinValue.length !== 4 || !/^\d{4}$/.test(pinValue)) {
-            showPopup('Please enter a valid 4-digit PIN!');
-            submitClan.disabled = false;
-            return;
-          }
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${emptyRow.id}`, {
-            method: 'PATCH',
-            headers: {
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
-              'Content-Type': 'application/json',
-              Prefer: 'return=representation',
-            },
-            body: JSON.stringify({ clan, clan_logo: currentLogoBase64, cancel_key: pinValue }),
-          });
-          if (!res.ok) {
-            const errText = await res.text();
-            if (errText && errText.toLowerCase().includes('duplicate') || res.status === 409) {
-              showPopup('Clan already exists!');
-            } else {
-              showPopup('Something went wrong. Please try again.');
-            }
-            submitClan.disabled = false;
-            return;
-          }
-          showPopup('Successfully Reserved!');
-          clanInput.value = '';
-          clanModal.style.display = 'none';
-          submitClan.disabled = false;
-          loadSlots();
-        } catch (e) {
-          showPopup('Error: ' + e.message);
-          submitClan.disabled = false;
-        }
-      }
-
-      // Load slots from Supabase for this schedule
-      async function loadSlots() {
-        try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan,clan_logo,schedule_type&schedule_type=eq.${currentSched}&order=slot_number.asc`, {
-            headers: {
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
-            },
-          });
-          const data = await res.json();
-          currentSlots = (Array.isArray(data) ? data : []).map(r => ({
-            id: r.id,
-            slot: r.slot_number,
-            clan: r.clan || '',
-            logo: r.clan_logo || '',
-          }));
-
-          slotsEl.innerHTML = '';
-          for (let i = 1; i <= MAX_SLOTS; i++) {
-            const s = currentSlots.find(x => x.slot === i);
-            const clan = s && s.clan ? String(s.clan).trim() : '';
-            const logo = s && s.logo ? s.logo : '';
-
-            const div = document.createElement('div');
-            div.className = 'slot ' + (clan ? 'filled' : 'empty');
-
-            let logoHtml = '';
-            if (clan) {
-              logoHtml = `
-                <div class="slot-logo">
-                  ${logo ? `<img src="${logo}" alt="Logo">` : `<span style="font-size: 20px;">🛡️</span>`}
-                </div>
-              `;
-            }
-
-            div.innerHTML = `
-              ${logoHtml}
-              <div class="num">Slot ${i}</div>
-              <div class="clan">${clan || 'EMPTY'}</div>
-            `;
-            slotsEl.appendChild(div);
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
-
-      // Auto-refresh
+    function switchSched(sched) {
+      currentSched = sched;
+      document.getElementById('schedBtn8pm').classList.toggle('active', sched === '8pm');
+      document.getElementById('schedBtn10pm').classList.toggle('active', sched === '10pm');
+      const title = document.getElementById('pageTitle');
+      if (title) title.textContent = `A51 ASTRAL ${sched.toUpperCase()} Scrim Reservation`;
       loadSlots();
-      setInterval(loadSlots, 1000);
-
-      function formatTime(t24) {
-        if (!t24) return '';
-        const [h, m] = t24.split(':');
-        let hh = parseInt(h, 10);
-        const ampm = hh >= 12 ? 'PM' : 'AM';
-        hh = hh % 12 || 12;
-        return `${hh}:${m} ${ampm}`;
-      }
-
-      // Check reservation open/closed status for this specific schedule
-      async function checkStatus() {
-        try {
-          const keys = [`${currentSched}_is_open`, `${currentSched}_sched_start`, `${currentSched}_sched_end`].join(',');
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(${keys})&select=key,value`, {
-            headers: {
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
-            },
-          });
-          if (!res.ok) throw new Error('Network response was not ok');
-          const rows = await res.json();
-
-          let isOp = 'false';
-          let sStart = '';
-          let sEnd = '';
-          rows.forEach(r => {
-            if (r.key === `${currentSched}_is_open`) isOp = r.value;
-            if (r.key === `${currentSched}_sched_start`) sStart = r.value;
-            if (r.key === `${currentSched}_sched_end`) sEnd = r.value;
-          });
-
-          const val = isOp ? String(isOp).toLowerCase() : 'false';
-          const isOpenManual = val === '1' || val === 'true' || val === 'yes';
-
-          let isOpenSched = false;
-          if (sStart && sEnd) {
-            const now = new Date();
-            const currentHMs = now.getHours() * 60 + now.getMinutes();
-
-            const [sh, sm] = sStart.split(':').map(Number);
-            const startMs = sh * 60 + sm;
-
-            const [eh, em] = sEnd.split(':').map(Number);
-            const endMs = eh * 60 + em;
-
-            if (startMs <= endMs) {
-              isOpenSched = currentHMs >= startMs && currentHMs <= endMs;
-            } else {
-              // Schedule crosses midnight
-              isOpenSched = currentHMs >= startMs || currentHMs <= endMs;
-            }
-          }
-
-          const isOpen = isOpenManual || isOpenSched;
-
-          if (isOpen) {
-            mineBtn.disabled = false;
-            mineBtn.textContent = 'MINE SLOT';
-            let closeMsg = 'OPEN';
-            if (sEnd) {
-              closeMsg += ` (Closes at ${formatTime(sEnd)})`;
-            }
-            statusText.textContent = 'Reservation status: ' + closeMsg;
-            statusText.style.color = '#4ade80';
-          } else {
-            mineBtn.disabled = true;
-            mineBtn.textContent = 'RESERVATION CLOSED';
-            statusText.textContent = 'Reservation status: CLOSED' + (sStart ? ` (Opens at ${formatTime(sStart)})` : ' (wait for admin to open)');
-            statusText.style.color = '#f97316';
-          }
-        } catch (e) {
-          console.error(e);
-          statusText.textContent = 'Status error: ' + e.message;
-          statusText.style.color = '#f97316';
-        }
-      }
-
       checkStatus();
-      setInterval(checkStatus, 10000);
-    </script>
+    }
 
+    // Init active button
+    document.getElementById(`schedBtn${currentSched}`).classList.add('active');
+    document.getElementById('pageTitle').textContent = `A51 ASTRAL ${currentSched.toUpperCase()} Scrim Reservation`;
+
+    const supabaseHeaders = () => ({
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+    });
+
+    mineBtn.onclick = async () => {
+      const empty = currentSlots.find(s => !s.clan);
+      if (!empty) { showPopup(`All slots full for ${currentSched.toUpperCase()}!`); return; }
+      clanInput.value = '';
+      pinInput.value = '';
+      currentLogoBase64 = '';
+      logoPreview.src = '';
+      logoPreviewContainer.style.display = 'none';
+      uploadStatusText.textContent = 'UPLOAD LOGO';
+      clanModal.style.display = 'flex';
+      clanInput.focus();
+    }
+
+    uploadLogoBtn.onclick = () => logoFile.click();
+    logoFile.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const dataUrl = event.target.result;
+          logoPreview.src = dataUrl;
+          logoPreviewContainer.style.display = 'flex';
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX = 150;
+            let w = img.width, h = img.height;
+            if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
+            else { if (h > MAX) { w = w * MAX / h; h = MAX; } }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            currentLogoBase64 = canvas.toDataURL('image/jpeg', 0.65);
+          };
+          img.src = dataUrl;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    clanCancelBtn.onclick = () => clanModal.style.display = 'none';
+
+    cancelBtn.onclick = async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan,cancel_key&schedule_type=eq.${currentSched}&clan=neq.&clan=not.is.null&order=slot_number.asc`, { headers: supabaseHeaders() });
+        const filled = await res.json();
+        if (!filled || filled.length === 0) { showPopup("No reservations to cancel!"); return; }
+        const cancelList = document.getElementById('cancelList');
+        cancelList.innerHTML = '';
+        filled.forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'clan-option';
+          div.innerHTML = `<input type="radio" name="cancelSlot" id="slot_${s.id}" value="${s.id}" data-key="${s.cancel_key}" data-name="${s.clan}" data-num="${s.slot_number}">
+                           <label for="slot_${s.id}"><span>Slot ${s.slot_number}: ${s.clan}</span></label>`;
+          div.querySelector('input').onchange = () => {
+            document.getElementById('pinVerificationSection').style.display = 'block';
+            document.getElementById('cancelPinInput').focus();
+          };
+          cancelList.appendChild(div);
+        });
+        document.getElementById('cancelModal').style.display = 'flex';
+      } catch (e) { showPopup('Error loading clans'); }
+    };
+
+    document.getElementById('cancelCloseBtn').onclick = () => document.getElementById('cancelModal').style.display = 'none';
+
+    document.getElementById('cancelSubmitBtn').onclick = () => {
+      const selected = document.querySelector('input[name="cancelSlot"]:checked');
+      if (!selected) { showPopup("Select a slot."); return; }
+      if (document.getElementById('cancelPinInput').value !== selected.getAttribute('data-key')) { showPopup("Incorrect PIN!"); return; }
+      selectedSlotIdToCancel = selected.value;
+      document.getElementById('confirmMessage').innerHTML = `Cancel Slot ${selected.getAttribute('data-num')}: ${selected.getAttribute('data-name')}?`;
+      document.getElementById('confirmModal').style.display = 'flex';
+    };
+
+    document.getElementById('confirmNo').onclick = () => document.getElementById('confirmModal').style.display = 'none';
+    document.getElementById('confirmYes').onclick = async () => {
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${selectedSlotIdToCancel}`, {
+          method: 'PATCH',
+          headers: { ...supabaseHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clan: '', clan_logo: null, cancel_key: null }),
+        });
+        showPopup('Cancelled!');
+        document.getElementById('confirmModal').style.display = 'none';
+        document.getElementById('cancelModal').style.display = 'none';
+        loadSlots();
+      } catch (e) { showPopup('Error cancelling'); }
+    };
+
+    function showPopup(message) {
+      const p = document.createElement('div'); p.className = 'success-popup'; p.textContent = message;
+      document.body.appendChild(p); setTimeout(() => p.remove(), 1500);
+    }
+
+    clanSubmitBtn.onclick = async () => {
+      const clan = clanInput.value.trim();
+      const pin = pinInput.value.trim();
+      if (!clan || pin.length !== 4) { showPopup('Check clan name and 4-digit PIN!'); return; }
+      clanSubmitBtn.disabled = true;
+      try {
+        const resList = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan&schedule_type=eq.${currentSched}&order=slot_number.asc`, { headers: supabaseHeaders() });
+        const list = await resList.json();
+        const empty = list.find(r => !r.clan || r.clan.trim() === '');
+        if (!empty) { showPopup('Full!'); clanSubmitBtn.disabled = false; return; }
+        await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${empty.id}`, {
+          method: 'PATCH',
+          headers: { ...supabaseHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clan, clan_logo: currentLogoBase64, cancel_key: pin }),
+        });
+        showPopup('Reserved!');
+        clanModal.style.display = 'none';
+        loadSlots();
+      } catch (e) { showPopup('Error!'); } finally { clanSubmitBtn.disabled = false; }
+    }
+
+    async function loadSlots() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan,clan_logo&schedule_type=eq.${currentSched}&order=slot_number.asc`, { headers: supabaseHeaders() });
+        const data = await res.json();
+        currentSlots = data.map(r => ({ id: r.id, slot: r.slot_number, clan: r.clan, logo: r.clan_logo }));
+        slotsEl.innerHTML = '';
+        for (let i = 1; i <= MAX_SLOTS; i++) {
+          const s = currentSlots.find(x => x.slot === i);
+          const div = document.createElement('div');
+          div.className = 'slot ' + (s && s.clan ? 'filled' : 'empty');
+          div.innerHTML = s && s.clan
+            ? `<div class="slot-logo">${s.logo ? `<img src="${s.logo}">` : '🛡️'}</div><div class="num">Slot ${i}</div><div class="clan">${s.clan}</div>`
+            : `<div class="num">Slot ${i}</div><div class="clan">EMPTY</div>`;
+          slotsEl.appendChild(div);
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function formatTime(t24) {
+      if (!t24) return '';
+      const [h, m] = t24.split(':');
+      let hh = parseInt(h); const ampm = hh >= 12 ? 'PM' : 'AM';
+      hh = hh % 12 || 12; return `${hh}:${m} ${ampm}`;
+    }
+
+    async function checkStatus() {
+      try {
+        const keys = [`${currentSched}_is_open`, `${currentSched}_sched_start`, `${currentSched}_sched_end`].join(',');
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(${keys})&select=key,value`, { headers: supabaseHeaders() });
+        const rows = await res.json();
+        let isOp = 'false', sStart = '', sEnd = '';
+        rows.forEach(r => {
+          if (r.key === `${currentSched}_is_open`) isOp = r.value;
+          if (r.key === `${currentSched}_sched_start`) sStart = r.value;
+          if (r.key === `${currentSched}_sched_end`) sEnd = r.value;
+        });
+        const isOpenManual = isOp === 'true' || isOp === '1';
+
+        // Parse times for countdown
+        openTime = sStart ? { h: parseInt(sStart.split(':')[0]), m: parseInt(sStart.split(':')[1]) } : null;
+        closeTime = sEnd ? { h: parseInt(sEnd.split(':')[0]), m: parseInt(sEnd.split(':')[1]) } : null;
+
+        let isOpenSched = false;
+        if (openTime && closeTime) {
+          const now = new Date();
+          const currentMins = now.getHours() * 60 + now.getMinutes();
+          const startMins = openTime.h * 60 + openTime.m;
+          const endMins = closeTime.h * 60 + closeTime.m;
+          isOpenSched = startMins <= endMins ? (currentMins >= startMins && currentMins < endMins) : (currentMins >= startMins || currentMins < endMins);
+        }
+
+        isCurrentlyOpen = isOpenManual || isOpenSched;
+        statusBanner.className = isCurrentlyOpen ? 'open' : 'closed';
+        statusText.textContent = isCurrentlyOpen ? 'RESERVATIONS OPEN' : 'RESERVATIONS CLOSED';
+        mineBtn.disabled = !isCurrentlyOpen;
+
+        updateCountdown();
+      } catch (e) { console.error(e); }
+    }
+
+    function updateCountdown() {
+      if (!openTime || !closeTime) {
+        countdownText.textContent = isCurrentlyOpen ? "Manual override active" : "Wait for admin to open";
+        return;
+      }
+
+      const now = new Date();
+      const currentSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      const startSecs = openTime.h * 3600 + openTime.m * 60;
+      const endSecs = closeTime.h * 3600 + closeTime.m * 60;
+
+      let targetSecs;
+      if (isCurrentlyOpen) {
+        targetSecs = endSecs;
+        if (targetSecs < currentSecs) targetSecs += 24 * 3600; // Next day
+        let diff = targetSecs - currentSecs;
+        countdownText.textContent = `Closes in ${formatDiff(diff)}`;
+      } else {
+        targetSecs = startSecs;
+        if (targetSecs < currentSecs) targetSecs += 24 * 3600; // Next day
+        let diff = targetSecs - currentSecs;
+        countdownText.textContent = `Opens in ${formatDiff(diff)}`;
+      }
+    }
+
+    function formatDiff(s) {
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      return `${h}h ${m}m ${sec}s`;
+    }
+
+    setInterval(updateCountdown, 1000);
+    setInterval(checkStatus, 15000);
+    setInterval(loadSlots, 3000);
+    loadSlots(); checkStatus();
+  </script>
 </body>
 
 </html>
