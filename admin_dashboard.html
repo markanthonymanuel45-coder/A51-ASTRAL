@@ -1563,6 +1563,32 @@
             }
 
             try {
+              // --- ADMIN VALIDATION ---
+              const newClanUpper = newClan.toUpperCase();
+              const newTag = newClanUpper.split(/\s+/)[0];
+
+              // Filter out the current slot being edited from the check
+              const otherSlots = latestSlots.filter(row => row.id !== s.id);
+
+              // 1. Duplicate Check
+              const isDuplicate = otherSlots.some(row => row.clan && row.clan.trim().toUpperCase() === newClanUpper);
+              if (isDuplicate) {
+                showAdminToast(`Bawal duplicate! "${newClan}" is already in another slot.`, 'error');
+                return;
+              }
+
+              // 2. Group Limit Check (Prefix)
+              const groupCount = otherSlots.filter(row => {
+                if (!row.clan) return false;
+                const rTag = row.clan.trim().toUpperCase().split(/\s+/)[0];
+                return rTag === newTag;
+              }).length;
+
+              if (groupCount >= 3) {
+                showAdminToast(`Limit reached! Max 3 slots for "${newTag}" group.`, 'error');
+                return;
+              }
+
               const res = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${s.id}`, {
                 method: 'PATCH',
                 headers: supabaseHeaders(),
@@ -1760,6 +1786,31 @@
         const empty = latestSlots.find(s => !s.isFilled);
         if (!empty) {
           showAdminToast("All slots are full!", "error");
+          adminReserveSubmit.disabled = false;
+          return;
+        }
+
+        // --- ADMIN VALIDATION ---
+        const clanUpper = clan.toUpperCase();
+        const tag = clanUpper.split(/\s+/)[0];
+
+        // 1. Duplicate Check
+        const isDuplicate = latestSlots.some(s => s.clan && s.clan.trim().toUpperCase() === clanUpper);
+        if (isDuplicate) {
+          showAdminToast(`Bawal duplicate! "${clan}" is already registered.`, 'error');
+          adminReserveSubmit.disabled = false;
+          return;
+        }
+
+        // 2. Group Limit Check
+        const groupCount = latestSlots.filter(s => {
+          if (!s.clan) return false;
+          const rTag = s.clan.trim().toUpperCase().split(/\s+/)[0];
+          return rTag === tag;
+        }).length;
+
+        if (groupCount >= 3) {
+          showAdminToast(`Limit reached! Max 3 slots for "${tag}" group.`, 'error');
           adminReserveSubmit.disabled = false;
           return;
         }
