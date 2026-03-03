@@ -154,9 +154,11 @@
     }
 
     #mineBtn {
-      background: #2ecc71;
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
       color: #0b0f14;
-      box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+      box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     #mineBtn:hover:not(:disabled) {
@@ -204,15 +206,16 @@
     }
 
     .slot.empty {
-      background: linear-gradient(180deg, #39424a, #2c3238);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
       color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .slot.filled {
-      background: linear-gradient(180deg, #063a1b, #094b23);
+      background: linear-gradient(145deg, rgba(46, 204, 113, 0.15), rgba(7, 16, 25, 0.95));
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(46, 204, 113, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(46, 204, 113, 0.05);
     }
 
     .slot:hover {
@@ -696,9 +699,10 @@
     }
 
     .sched-btn.active {
-      background: linear-gradient(135deg, #2ecc71, #16a085);
-      color: #0b0f14;
-      box-shadow: 0 4px 14px rgba(46, 204, 113, 0.45);
+      background: rgba(46, 204, 113, 0.15);
+      color: #2ecc71;
+      border: 1px solid rgba(46, 204, 113, 0.5);
+      box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
     }
 
     .sched-divider {
@@ -965,8 +969,35 @@
       try {
         const resList = await fetch(`${SUPABASE_URL}/rest/v1/slots?select=id,slot_number,clan&schedule_type=eq.${currentSched}&order=slot_number.asc`, { headers: supabaseHeaders() });
         const list = await resList.json();
+
+        // --- VALIDATION LOGIC ---
+        const clanUpper = clan.toUpperCase();
+        const tag = clanUpper.split(/\s+/)[0]; // Extract prefix (e.g. "A51" from "A51 MAIN")
+
+        // 1. Exact Name Check
+        const isExactDuplicate = list.some(r => r.clan && r.clan.trim().toUpperCase() === clanUpper);
+        if (isExactDuplicate) {
+          showPopup(`Bawal duplicate: "${clan}" is already registered!`);
+          clanSubmitBtn.disabled = false;
+          return;
+        }
+
+        // 2. Limit per Clan Group (Prefix Check)
+        const tagCount = list.filter(r => {
+          if (!r.clan) return false;
+          const rTag = r.clan.trim().toUpperCase().split(/\s+/)[0];
+          return rTag === tag;
+        }).length;
+
+        if (tagCount >= 3) {
+          showPopup(`Limit reached! Max 3 slots for "${tag}" Group.`);
+          clanSubmitBtn.disabled = false;
+          return;
+        }
+
         const empty = list.find(r => !r.clan || r.clan.trim() === '');
         if (!empty) { showPopup('Full!'); clanSubmitBtn.disabled = false; return; }
+
         await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${empty.id}`, {
           method: 'PATCH',
           headers: { ...supabaseHeaders(), 'Content-Type': 'application/json' },
