@@ -224,62 +224,118 @@
       color: rgba(148, 163, 184, 0.3);
     }
 
-    /* ── Form Inputs ── */
+    /* ── Elite Modal Overlay ── */
+    #clanModal,
+    #cancelModal,
+    #confirmModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      padding: 16px;
+    }
+
+    #clanModalContent,
+    #cancelModalContent,
+    #confirmModalContent {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 28px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Modal Form UI */
     .input-group {
       text-align: left;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       width: 100%;
     }
 
     .input-group label {
-      font-size: 10px;
-      color: #64748b;
+      font-size: 11px;
+      color: #94a3b8;
       font-weight: 800;
       text-transform: uppercase;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       display: block;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
 
     .input-group input {
       width: 100%;
       background: #020617;
-      border: 1px solid #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       padding: 14px;
       color: #fff;
-      font-size: 14px;
+      font-size: 15px;
+      box-sizing: border-box;
     }
 
     .input-group input:focus {
-      border-color: #22c55e;
+      border-color: #2ecc71;
       outline: none;
+    }
+
+    .input-group small {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 6px;
+      display: block;
     }
 
     .flex-row {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       margin-top: 20px;
       width: 100%;
     }
 
     .btn-ghost {
-      background: transparent !important;
-      color: #64748b !important;
-      border: 1px solid #1e293b !important;
+      background: #1e293b !important;
+      color: #94a3b8 !important;
+      border: none !important;
       flex: 1;
+      border-radius: 14px;
+      font-weight: 700;
+      height: 48px;
+      cursor: pointer;
     }
 
     .btn-primary {
-      background: #22c55e !important;
+      background: #2ecc71 !important;
       color: #020617 !important;
-      font-weight: 800;
+      border: none !important;
       flex: 2;
+      border-radius: 14px;
+      font-weight: 800;
+      height: 48px;
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      background: #ef4444 !important;
+      color: #fff !important;
+      border: none !important;
+      flex: 2;
+      border-radius: 14px;
+      font-weight: 800;
+      height: 48px;
+      cursor: pointer;
     }
 
     #logoPreviewContainer {
-      width: 80px;
-      height: 80px;
+      width: 85px;
+      height: 85px;
       border-radius: 50%;
       background: #020617;
       border: 2px dashed #1e293b;
@@ -288,7 +344,21 @@
       overflow: hidden;
     }
 
-    /* Centering */
+    .confirm-title {
+      color: #ef4444;
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .confirm-text {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    /* Centering Utility */
     .container>* {
       margin-left: auto;
       margin-right: auto;
