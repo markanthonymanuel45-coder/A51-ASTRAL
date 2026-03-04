@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CODM Scrim Slot Reservation</title>
   <style>
     * {
@@ -13,12 +13,14 @@
       padding: 0;
     }
 
+    html,
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: #020617;
       color: #f8fafc;
       min-height: 100vh;
-      width: 100%;
+      width: 100vw;
+      max-width: 100%;
       overflow-x: hidden;
     }
 
