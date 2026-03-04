@@ -157,14 +157,10 @@
       errorMsg.textContent = '';
 
       try {
-        // Query the 'site_config' table for 'admin_pass'
-        const { data, error } = await _supabase
-          .from('site_config')
-          .select('value')
-          .eq('id', 'admin_pass')
-          .single();
+        // Call the secure database function instead of querying the table directly
+        const { data, error } = await _supabase.rpc('check_admin_password', { input_password: val });
 
-        if (error || !data || data.value !== val) {
+        if (error || data !== true) {
           errorMsg.textContent = 'Incorrect admin key.';
           loginBtn.disabled = false;
           loginBtn.textContent = 'Continue';
