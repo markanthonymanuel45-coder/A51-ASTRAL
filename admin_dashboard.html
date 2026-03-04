@@ -623,6 +623,21 @@
       }
     }
 
+    /* Scoreboard Row Highlight */
+    .highlight-row {
+      background: rgba(37, 99, 235, 0.35) !important;
+      position: relative;
+    }
+
+    .highlight-row td {
+      border-top: 1px solid #3b82f6 !important;
+      border-bottom: 1px solid #3b82f6 !important;
+    }
+
+    .highlight-row td:first-child {
+      border-left: 3px solid #3b82f6 !important;
+    }
+
     /* Admin Slot Logo Styles */
     .slot-logo-admin {
       width: 32px;
@@ -1371,6 +1386,13 @@
           const tr = document.createElement('tr');
           tr.style.background = s.isCurrent ? 'rgba(15,23,42,0.85)' : 'rgba(30,41,59,0.5)';
           if (!s.isCurrent) tr.style.opacity = '0.8';
+          tr.style.cursor = 'pointer';
+          tr.onclick = (e) => {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+              const firstInp = tr.querySelector('input');
+              if (firstInp) firstInp.focus();
+            }
+          };
 
           const slotTd = document.createElement('td');
           slotTd.textContent = s.slot;
@@ -1409,8 +1431,16 @@
             input.style.fontSize = '10px';
             input.style.textAlign = 'center';
             input.style.outline = 'none';
-            input.onfocus = () => input.style.borderColor = '#3b82f6';
-            input.onblur = () => input.style.borderColor = s.isCurrent ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)';
+            input.onfocus = () => {
+              input.style.borderColor = '#3b82f6';
+              input.style.background = 'rgba(30, 58, 138, 0.4)';
+              tr.classList.add('highlight-row');
+            };
+            input.onblur = () => {
+              input.style.borderColor = s.isCurrent ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)';
+              input.style.background = 'rgba(15,23,42,0.95)';
+              tr.classList.remove('highlight-row');
+            };
             td.appendChild(input);
             tr.appendChild(td);
             scoreInputs.push(input);
@@ -1440,6 +1470,16 @@
           totalInput.style.fontSize = '11px';
           totalInput.style.textAlign = 'center';
           totalInput.style.outline = 'none';
+          totalInput.onfocus = () => {
+            totalInput.style.borderColor = '#facc15';
+            totalInput.style.background = 'rgba(133, 77, 14, 0.2)';
+            tr.classList.add('highlight-row');
+          };
+          totalInput.onblur = () => {
+            totalInput.style.borderColor = 'rgba(250,204,21,0.4)';
+            totalInput.style.background = 'rgba(250,204,21,0.05)';
+            tr.classList.remove('highlight-row');
+          };
           totalTd.appendChild(totalInput);
           tr.appendChild(totalTd);
           scoreInputs.push(totalInput);
