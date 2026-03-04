@@ -944,16 +944,22 @@
     document.getElementById('confirmNo').onclick = () => document.getElementById('confirmModal').style.display = 'none';
     document.getElementById('confirmYes').onclick = async () => {
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${selectedSlotIdToCancel}`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${selectedSlotIdToCancel}`, {
           method: 'PATCH',
-          headers: { ...supabaseHeaders(), 'Content-Type': 'application/json' },
+          headers: { ...supabaseHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
           body: JSON.stringify({ clan: '', clan_logo: null, cancel_key: null }),
         });
+
+        if (!response.ok) throw new Error('Database rejected cancellation');
+
         showPopup('Cancelled!');
         document.getElementById('confirmModal').style.display = 'none';
         document.getElementById('cancelModal').style.display = 'none';
         loadSlots();
-      } catch (e) { showPopup('Error cancelling'); }
+      } catch (e) {
+        console.error(e);
+        showPopup('Error cancelling. Please try again.');
+      }
     };
 
     function showPopup(message) {
@@ -998,15 +1004,24 @@
         const empty = list.find(r => !r.clan || r.clan.trim() === '');
         if (!empty) { showPopup('Full!'); clanSubmitBtn.disabled = false; return; }
 
-        await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${empty.id}`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/slots?id=eq.${empty.id}`, {
           method: 'PATCH',
-          headers: { ...supabaseHeaders(), 'Content-Type': 'application/json' },
+          headers: { ...supabaseHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
           body: JSON.stringify({ clan, clan_logo: currentLogoBase64, cancel_key: pin }),
         });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Database rejected reservation');
+        }
+
         showPopup('Reserved!');
         clanModal.style.display = 'none';
         loadSlots();
-      } catch (e) { showPopup('Error!'); } finally { clanSubmitBtn.disabled = false; }
+      } catch (e) {
+        console.error(e);
+        showPopup('Error! ' + (e.message.includes('Database') ? 'Permission denied.' : 'Please try again.'));
+      } finally { clanSubmitBtn.disabled = false; }
     }
 
     async function loadSlots() {
