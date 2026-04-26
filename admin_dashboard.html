@@ -2372,15 +2372,15 @@
       const buildTableContent = (targetRows, startIndex) => {
         return targetRows.map((r, i) => `
           <tr style="background: ${(startIndex + i) % 2 === 0 ? 'rgba(15, 23, 42, 0.5)' : 'transparent'};">
-            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold; font-size: 16px;">${startIndex + i + 1}</td>
-            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: left; font-weight: 500; font-size: 16px; color: #fff; letter-spacing: 0.5px;">${r.team}</td>
-            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.r1 || '-'}</td>
-            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.pp1 || '-'}</td>
-            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.r2 || '-'}</td>
-            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.pp2 || '-'}</td>
-            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.r3 || '-'}</td>
-            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.pp3 || '-'}</td>
-            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold; font-size: 16px; color: #facc15;">${r.total || '0'}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold; font-size: 14px;">${startIndex + i + 1}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: left; font-weight: 500; font-size: 14px; color: #fff; letter-spacing: 0.5px;">${r.team}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 14px;">${r.r1 || '-'}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 14px;">${r.pp1 || '-'}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 14px;">${r.r2 || '-'}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 14px;">${r.pp2 || '-'}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 14px;">${r.r3 || '-'}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 14px;">${r.pp3 || '-'}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold; font-size: 14px; color: #facc15;">${r.total || '0'}</td>
           </tr>
         `).join('');
       };
@@ -2391,15 +2391,23 @@
       container.style.top = '0';
       container.style.width = '1080px'; // Optimized for mobile
       container.style.padding = '35px';
-      // Real Thunder Electric Blue background
-      container.style.background = "linear-gradient(rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.90)), url('https://images.unsplash.com/photo-1605722243979-fc085eb054ef?q=80&w=1280&auto=format&fit=crop') center/cover no-repeat";
+      // Thunder blue background (brigthened so the lightning is visible!)
+      container.style.background = "linear-gradient(rgba(2, 6, 23, 0.6), rgba(2, 6, 23, 0.8)), url('https://images.unsplash.com/photo-1605722243979-fc085eb054ef?q=80&w=1280&auto=format&fit=crop') center/cover no-repeat";
       container.style.backgroundColor = '#020617';
       container.style.color = '#e5e7eb';
       container.style.fontFamily = "'Inter', sans-serif";
 
+      const formattedTimeSpaces = currentSched.toUpperCase().replace('PM', '').split('').join(' ') + ' : 0 0   P M';
+
       container.innerHTML = `
         <div style="text-align: center; margin-bottom: 25px;">
-           <h1 style="margin: 0; font-size: 55px; color: #facc15; letter-spacing: 0.05em; font-family: 'Teko', sans-serif; text-shadow: 0px 4px 15px rgba(234, 179, 8, 0.3), 2px 2px 0px #000;">A51 ASTRAL SCRIM RESULTS - ${currentSched.toUpperCase()}</h1>
+           <h1 style="margin: 0; font-size: 50px; font-family: 'Joker', 'Teko', sans-serif; letter-spacing: 0.05em; line-height: 1.1;">
+              <span style="color: #4dd0e1; text-shadow: 2px 2px 0px #020617, 3px 3px 0px #0ea5e9, 0px 4px 15px rgba(56, 189, 248, 0.5);">ASTRAL51</span> 
+              <span style="color: #f8fafc; text-shadow: 2px 2px 0px #020617, 3px 3px 0px #64748b, 0px 4px 15px rgba(255, 255, 255, 0.3);">BATTLE ROYAL SCRIMMAGE</span>
+           </h1>
+           <div style="font-size: 20px; color: #f8fafc; letter-spacing: 0.2em; font-family: 'Inter', sans-serif; font-weight: 700; text-shadow: 2px 2px 4px #000; margin-top: 0px;">
+              ${formattedTimeSpaces}
+           </div>
         </div>
         <div style="display:flex; gap:35px; align-items:center; justify-content:center;">
           <!-- Left side scoreboard (Single vertical column) -->
@@ -2410,33 +2418,32 @@
              </table>
           </div>
           
-          <!-- Right side player stats -->
           <div style="width: 440px; display:flex; flex-direction:column; gap:30px;">
              <div>
-               <table style="width:100%; border-collapse:collapse; font-size:16px; border: 1px solid rgba(51,65,85,0.5); font-family: 'Inter', sans-serif;">
+               <table style="width:100%; border-collapse:collapse; font-size:14px; border: 1px solid rgba(51,65,85,0.5); font-family: 'Inter', sans-serif;">
                   <thead>
-                     <tr style="color:#e2e8f0; font-size:16px; letter-spacing:1px;">
-                        <th rowspan="2" style="background: #1e3a8a; padding:10px 6px; text-align:left; padding-left:12px; vertical-align:middle; border-bottom:1px solid #1e40af;">IN-GAME NAME</th>
-                        <th colspan="3" style="background: #1e3a8a; padding:10px 6px; border-bottom:1px solid #1e40af;">KILLS</th>
-                        <th rowspan="2" style="background: #1e3a8a; padding:10px 6px; vertical-align:middle; border-bottom:1px solid #1e40af;">TOTAL</th>
-                     </tr>
                      <tr style="color:#e2e8f0; font-size:14px; letter-spacing:1px;">
-                        <th style="background:#1d4ed8; padding:4px; border-bottom:1px solid #1d4ed8;">R1</th>
-                        <th style="background:#1d4ed8; padding:4px; border-bottom:1px solid #1d4ed8;">R2</th>
-                        <th style="background:#1d4ed8; padding:4px; border-bottom:1px solid #1d4ed8;">R3</th>
+                        <th rowspan="2" style="background: #1e3a8a; padding:6px; text-align:left; padding-left:12px; vertical-align:middle; border-bottom:1px solid #1e40af;">IN-GAME NAME</th>
+                        <th colspan="3" style="background: #1e3a8a; padding:6px; border-bottom:1px solid #1e40af;">KILLS</th>
+                        <th rowspan="2" style="background: #1e3a8a; padding:6px; vertical-align:middle; border-bottom:1px solid #1e40af;">TOTAL</th>
+                     </tr>
+                     <tr style="color:#e2e8f0; font-size:12px; letter-spacing:1px;">
+                        <th style="background:#1d4ed8; padding:3px; border-bottom:1px solid #1d4ed8;">R1</th>
+                        <th style="background:#1d4ed8; padding:3px; border-bottom:1px solid #1d4ed8;">R2</th>
+                        <th style="background:#1d4ed8; padding:3px; border-bottom:1px solid #1d4ed8;">R3</th>
                      </tr>
                   </thead>
                   <tbody style="background: rgba(15,23,42,0.6);">
-                     ${playerRowsHtml.join('').replace(/font-size:12px/g, 'font-size:16px').replace(/padding:6px 10px/g, 'padding:8px').replace('background:#0f172a', 'background:rgba(30,58,138,0.7)')}
+                     ${playerRowsHtml.join('').replace(/font-size:12px/g, 'font-size:14px').replace(/padding:6px 10px/g, 'padding:6px').replace('background:#0f172a', 'background:rgba(30,58,138,0.7)')}
                   </tbody>
                </table>
              </div>
              <div>
-               <div style="font-family:'Teko', sans-serif; font-size:55px; font-weight:600; text-align:center; color:#e2e8f0; background:#334155; padding:6px 0 0 0; border:1px solid #1e293b; line-height:1; letter-spacing: 2px;">
+               <div style="font-family:'Teko', sans-serif; font-size:42px; font-weight:600; text-align:center; color:#e2e8f0; background:#334155; padding:6px 0 0 0; border:1px solid #1e293b; line-height:1; letter-spacing: 2px;">
                  ${adminDateText}
                </div>
                
-               <table style="width:100%; border-collapse:collapse; border:1px solid #0f172a; font-size:18px; letter-spacing:1px; margin-top:5px;">
+               <table style="width:100%; border-collapse:collapse; border:1px solid #0f172a; font-size:16px; letter-spacing:1px; margin-top:5px;">
                  <tbody>
                     <tr>
                       <td style="background:#475569; color:#f8fafc; padding:6px; text-align:center; width:25%;">TOP 1</td>
