@@ -458,6 +458,10 @@
 
     <!-- ── Schedule Switcher ── -->
     <div class="sched-switcher">
+      <button class="sched-btn" id="schedBtn6pm" onclick="switchSched('6pm')">
+        🌄 6:00 PM
+      </button>
+      <div class="sched-divider"></div>
       <button class="sched-btn active" id="schedBtn8pm" onclick="switchSched('8pm')">
         🌙 8:00 PM
       </button>
@@ -618,10 +622,11 @@
     // --- Schedule Switcher ---
     const urlParams = new URLSearchParams(window.location.search);
     let currentSched = urlParams.get('sched') || '8pm';
-    if (currentSched !== '8pm' && currentSched !== '10pm') currentSched = '8pm';
+    if (currentSched !== '6pm' && currentSched !== '8pm' && currentSched !== '10pm') currentSched = '8pm';
 
     function switchSched(sched) {
       currentSched = sched;
+      document.getElementById('schedBtn6pm').classList.toggle('active', sched === '6pm');
       document.getElementById('schedBtn8pm').classList.toggle('active', sched === '8pm');
       document.getElementById('schedBtn10pm').classList.toggle('active', sched === '10pm');
       // Update URL without reload
@@ -632,6 +637,7 @@
     }
 
     // Init button states
+    document.getElementById('schedBtn6pm').classList.toggle('active', currentSched === '6pm');
     document.getElementById('schedBtn8pm').classList.toggle('active', currentSched === '8pm');
     document.getElementById('schedBtn10pm').classList.toggle('active', currentSched === '10pm');
 
