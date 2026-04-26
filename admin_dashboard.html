@@ -249,6 +249,22 @@
       font-size: 12px;
     }
 
+    .fullscreen-mode {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 99999 !important;
+      margin: 0 !important;
+      padding: 40px !important;
+      overflow-y: auto !important;
+      background: #0f172ae3 !important;
+      backdrop-filter: blur(10px) !important;
+      border-radius: 0 !important;
+      box-sizing: border-box !important;
+    }
+
     .slot-card.empty {
       background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(55, 65, 81, 0.7));
       border-style: dashed;
@@ -794,6 +810,9 @@
                 <button id="saveScoreboardBtn" class="btn btn-ghost" style="font-size:11px; padding:6px 10px;">
                   Save scoreboard
                 </button>
+                <button id="toggleFullscreenBtn" class="btn btn-update" style="font-size:11px; padding:6px 10px; background: #0284c7; border-color: #0369a1;">
+                  ⛶ Full Screen
+                </button>
                 <button id="resetScoreboardBtn" class="btn btn-danger" style="font-size:11px; padding:6px 10px;">
                   Reset Scoreboard
                 </button>
@@ -811,26 +830,91 @@
               points and totals as needed.
             </div>
 
-            <div style="overflow-x:auto; margin-top: 15px;">
-              <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:520px;">
-                <thead>
-                  <tr style="background:rgba(15,23,42,0.95);">
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">Slot</th>
-                    <th style="text-align:left; padding:6px 8px; border-bottom:1px solid rgba(55,65,81,0.9);">Team Name
-                    </th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R1</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP1</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R2</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP2</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">R3</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">PP3</th>
-                    <th style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">TOTAL</th>
-                  </tr>
-                </thead>
-                <tbody id="scoreboardBody">
-                  <!-- rows generated from scrim slots -->
-                </tbody>
-              </table>
+            <div style="display: grid; grid-template-columns: 1fr 340px; gap: 15px; margin-top: 15px;" id="adminScoreboardLayout">
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:480px;">
+                  <thead>
+                    <tr style="background:rgba(15,23,42,0.95);">
+                      <th rowspan="2" style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">Slot</th>
+                      <th rowspan="2" style="text-align:left; padding:6px 8px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">Team Name</th>
+                      <th colspan="2" style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">R1</th>
+                      <th colspan="2" style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">R2</th>
+                      <th colspan="2" style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">R3</th>
+                      <th rowspan="2" style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">TOTAL</th>
+                      <th rowspan="2" class="action-head" style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);"></th>
+                    </tr>
+                    <tr style="background:rgba(30,41,59,0.95);">
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9);">KILLS</th>
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">PP</th>
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9);">KILLS</th>
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">PP</th>
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9);">KILLS</th>
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">PP</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scoreboardBody">
+                    <!-- rows generated from scrim slots -->
+                  </tbody>
+                </table>
+              </div>
+              <div style="background:rgba(15,23,42,0.6); padding: 12px; border-radius: 12px; border: 1px solid rgba(55,65,81,0.5);">
+                <div style="font-size:12px; font-weight:600; color:#bfdbfe; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                  TOP PLAYERS STATS
+                  <button id="savePlayersBtn" class="btn btn-update" style="padding:4px 8px; font-size:10px;">Save Stats</button>
+                </div>
+                <div style="font-size:10px; color:#9ca3af; margin-bottom:10px;">Type player names & stats based on Top 3 sorted teams.</div>
+                <div id="playerStatsContainer" style="overflow-x:auto;">
+                  <table style="width:100%; border-collapse:collapse; font-size:11px;">
+                    <thead>
+                      <tr style="background:rgba(30,41,59,0.95);">
+                         <th rowspan="2" style="text-align:left; padding:4px;">IN-GAME NAME</th>
+                         <th colspan="3" style="padding:4px;">KILLS</th>
+                         <th rowspan="2" style="padding:4px;">TOTAL</th>
+                      </tr>
+                      <tr style="background:rgba(15,23,42,0.95);">
+                         <th style="font-size:9px;">R1</th>
+                         <th style="font-size:9px;">R2</th>
+                         <th style="font-size:9px;">R3</th>
+                      </tr>
+                    </thead>
+                    <tbody id="adminPlayersBody">
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Admin Summary View to match public scoreboard -->
+                <div style="margin-top:20px;">
+                  <div id="adminDateDisplay" style="font-family:'Teko', sans-serif; font-size:40px; font-weight:700; text-transform:uppercase; text-align:center; color:#e2e8f0; background:#475569; margin-bottom:10px; line-height:1; border:1px solid #1e293b;">
+                    DATE PENDING
+                  </div>
+                  <table style="width:100%; border-collapse:collapse; border:1px solid #0f172a;">
+                    <tbody style="font-size:11px; font-weight:700;">
+                      <tr>
+                        <td style="background:#4dd0e1; color:#020617; font-weight:900; width:25%; padding:4px; text-align:center;">TOP 1</td>
+                        <td id="adminSumTop1" style="background:#334155; color:#f8fafc; padding:4px; text-align:center;">---</td>
+                        <td id="adminPtsTop1" style="background:#475569; color:#f8fafc; width:20%; padding:4px; text-align:center;">-</td>
+                      </tr>
+                      <tr>
+                        <td style="background:#4dd0e1; color:#020617; font-weight:900; padding:4px; text-align:center;">TOP 2</td>
+                        <td id="adminSumTop2" style="background:#334155; color:#f8fafc; padding:4px; text-align:center;">---</td>
+                        <td id="adminPtsTop2" style="background:#475569; color:#f8fafc; padding:4px; text-align:center;">-</td>
+                      </tr>
+                      <tr>
+                        <td style="background:#4dd0e1; color:#020617; font-weight:900; padding:4px; text-align:center;">TOP 3</td>
+                        <td id="adminSumTop3" style="background:#334155; color:#f8fafc; padding:4px; text-align:center;">---</td>
+                        <td id="adminPtsTop3" style="background:#475569; color:#f8fafc; padding:4px; text-align:center;">-</td>
+                      </tr>
+                      <tr>
+                        <td style="background:#4dd0e1; color:#020617; font-weight:900; padding:4px; text-align:center;">MVP</td>
+                        <td id="adminSumMVP" style="background:#334155; color:#f8fafc; padding:4px; text-align:center;">PENDING TO UPDATE</td>
+                        <td id="adminPtsMVP" style="background:#475569; color:#f8fafc; padding:4px; text-align:center;">0 KILLS</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -982,6 +1066,7 @@
     let currentAdminLogoBase64 = '';
     let latestSlots = [];
     let latestScoreboardData = [];
+    let latestPlayersData = "[]";
     let adminPopupResolver = null;
     let currentSched = '8pm'; // DEFAULT VIEW
 
@@ -1115,6 +1200,17 @@
           latestScoreboardData = [];
         } else {
           latestScoreboardData = fetchedScores;
+        }
+
+        // Fetch Player Stats from Config
+        const playersConfigRes = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${currentSched}_players_data&select=value`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        });
+        const playersConfigData = await playersConfigRes.json();
+        if (playersConfigData && playersConfigData.length > 0) {
+          latestPlayersData = playersConfigData[0].value || "[]";
+        } else {
+          latestPlayersData = "[]";
         }
 
         renderView();
@@ -1331,16 +1427,8 @@
       if (scoreboardBody) {
         scoreboardBody.innerHTML = '';
 
-        // Update header to have action column
-        const scoreboardHeader = scoreboardBody.parentElement.querySelector('thead tr');
-        if (scoreboardHeader && !scoreboardHeader.querySelector('.action-head')) {
-          const th = document.createElement('th');
-          th.className = 'action-head';
-          th.style.padding = '6px 4px';
-          th.style.borderBottom = '1px solid rgba(55,65,81,0.9)';
-          th.textContent = ''; // Empty for delete button
-          scoreboardHeader.appendChild(th);
-        }
+        // Clear existing to avoid duplicate action headers
+        // action columns are manually placed in the HTML structure now so no JS append needed
 
         const teamsInSlots = new Set();
         const combinedResults = [];
@@ -1530,6 +1618,118 @@
             }
           });
         });
+
+        // Render admin Players list
+        const adminPlayersBody = document.getElementById('adminPlayersBody');
+        if (adminPlayersBody) {
+          adminPlayersBody.innerHTML = '';
+          const top3 = combinedResults.slice().sort((a,b) => {
+             const vB = parseInt(b.score?.total || 0, 10) || 0;
+             const vA = parseInt(a.score?.total || 0, 10) || 0;
+             return vB - vA;
+          }).slice(0, 3);
+          
+          let savedPlayers = [];
+          try { savedPlayers = JSON.parse(latestPlayersData); } catch(e){}
+
+          top3.forEach((team, idx) => {
+            const tName = team.clan || 'TBD';
+            let tData = savedPlayers.find(x => normalize(x.team) === normalize(tName));
+            if (!tData) tData = { team: tName, players: [] };
+            
+            adminPlayersBody.innerHTML += `<tr><td colspan="5" style="background:rgba(15,23,42,0.95); font-weight:bold; color:#4dd0e1; text-align:center; padding:4px; letter-spacing: 1px;">TOP ${idx+1} - ${tName}</td></tr>`;
+
+            for(let p=0; p<4; p++) {
+                const player = tData.players[p] || { name: '', r1: '', r2: '', r3: '' };
+                const inputStyle = "width:100%; border:1px solid rgba(255,255,255,0.2); background:rgba(15,23,42,0.6); color:#fff; font-size:10px; padding:3px; text-align:center; border-radius:4px;";
+                const nameStyle = "width:100%; border:1px solid rgba(255,255,255,0.2); background:rgba(15,23,42,0.6); color:#fff; font-size:10px; padding:3px; border-radius:4px;";
+                
+                let pR1 = parseInt(player.r1, 10); if (isNaN(pR1)) pR1 = 0;
+                let pR2 = parseInt(player.r2, 10); if (isNaN(pR2)) pR2 = 0;
+                let pR3 = parseInt(player.r3, 10); if (isNaN(pR3)) pR3 = 0;
+                let tot = pR1 + pR2 + pR3;
+                let d1 = player.r1 === '' ? '-' : pR1;
+                let d2 = player.r2 === '' ? '-' : pR2;
+                let d3 = player.r3 === '' ? '-' : pR3;
+                let displayTot = (d1==='-' && d2==='-' && d3==='-') ? '-' : tot;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td style="padding:3px;"><input type="text" class="player-input" style="${nameStyle}" data-team="${tName}" data-idx="${p}" data-field="name" value="${player.name}" placeholder="Player ${p+1}"></td>
+                  <td style="padding:3px;"><input type="text" class="player-input p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r1" value="${player.r1}"></td>
+                  <td style="padding:3px;"><input type="text" class="player-input p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r2" value="${player.r2}"></td>
+                  <td style="padding:3px;"><input type="text" class="player-input p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r3" value="${player.r3}"></td>
+                  <td style="padding:3px; text-align:center; font-weight:bold;" class="p-total">${displayTot}</td>
+                `;
+                adminPlayersBody.appendChild(tr);
+            }
+          });
+          
+          // Re-calculate local MVP stats instantly for preview
+          const recalcStats = () => {
+             let maxKills = 0;
+             let maxName = 'PENDING TO UPDATE';
+             const top1TeamName = top3[0] ? top3[0].clan : null;
+
+             const playerRows = adminPlayersBody.querySelectorAll('tr');
+             playerRows.forEach(tr => {
+                 const nameInp = tr.querySelector('input[data-field="name"]');
+                 if(!nameInp) return;
+                 const pTeam = nameInp.getAttribute('data-team');
+                 const kills = tr.querySelectorAll('.p-kill');
+                 let sum = 0;
+                 let hasAny = false;
+                 kills.forEach(k => {
+                     if (k.value.trim()!=='') {
+                         hasAny = true;
+                         sum += (parseInt(k.value.trim(), 10) || 0);
+                     }
+                 });
+                 const totTd = tr.querySelector('.p-total');
+                 if(totTd) totTd.textContent = hasAny ? sum : '-';
+                 
+                 const pName = nameInp.value.trim();
+                 // Compute MVP ONLY for Top 1 team players
+                 if (pTeam === top1TeamName && hasAny && pName && sum > maxKills) {
+                     maxKills = sum;
+                     maxName = pName;
+                 }
+             });
+             const adminSumMVP = document.getElementById('adminSumMVP');
+             const adminPtsMVP = document.getElementById('adminPtsMVP');
+             if(adminSumMVP && adminPtsMVP) {
+                 adminSumMVP.textContent = maxName;
+                 adminPtsMVP.textContent = maxKills > 0 ? (maxKills + ' KILLS') : '- KILLS';
+             }
+          };
+
+          // Attach blur listeners for instant visual calc
+          document.querySelectorAll('.player-input').forEach(inp => {
+             inp.addEventListener('blur', recalcStats);
+          });
+          
+          // Populate Admin Summary blocks with Top Teams data
+          ['adminSumTop1', 'adminSumTop2', 'adminSumTop3'].forEach((id, idx) => {
+             const el = document.getElementById(id);
+             if(el) el.textContent = top3[idx] ? top3[idx].clan : '---';
+          });
+          ['adminPtsTop1', 'adminPtsTop2', 'adminPtsTop3'].forEach((id, idx) => {
+             const el = document.getElementById(id);
+             if(el) el.textContent = top3[idx] ? (top3[idx].score.total || '-') : '-';
+          });
+          
+          // Update Date UI from current datepicker value or fetch result
+          const adminDateDisplay = document.getElementById('adminDateDisplay');
+          const dpValue = scoreboardDatePicker.value;
+          if (adminDateDisplay && dpValue) {
+              const d = new Date(dpValue);
+              const options = { month: 'long', day: 'numeric', year: 'numeric' };
+              adminDateDisplay.textContent = d.toLocaleDateString('en-US', options).toUpperCase();
+          }
+
+          // Force an initial recalculation for MVP text
+          recalcStats();
+        }
       }
 
       // slots grid
@@ -1904,11 +2104,6 @@
             });
           }
         }
-        // Scoreboard deletion is now disabled per user request to keep results visible until next save.
-        // await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?schedule_type=eq.${currentSched}`, {
-        //   method: 'DELETE', headers: supabaseHeaders()
-        // });
-
         showAdminToast("All slots reset. Old scores are preserved in history.", 'success');
         loadAdminSlots();
       } catch (e) {
@@ -1916,6 +2111,47 @@
         showAdminToast("Error while resetting: " + e.message, 'error');
       }
     });
+
+    const savePlayersBtn = document.getElementById('savePlayersBtn');
+    if (savePlayersBtn) {
+      savePlayersBtn.onclick = async () => {
+        savePlayersBtn.disabled = true;
+        savePlayersBtn.textContent = 'Saving...';
+        const inputs = document.querySelectorAll('.player-input');
+        const dataMap = {};
+        inputs.forEach(inp => {
+            const team = inp.getAttribute('data-team');
+            const idx = parseInt(inp.getAttribute('data-idx'), 10);
+            const field = inp.getAttribute('data-field');
+            if(!dataMap[team]) dataMap[team] = [];
+            if(!dataMap[team][idx]) dataMap[team][idx] = { name: '', r1: '', r2: '', r3: '' };
+            dataMap[team][idx][field] = inp.value;
+        });
+        const finalData = Object.keys(dataMap).map(team => ({
+           team, players: dataMap[team]
+        }));
+        const jsonStr = JSON.stringify(finalData);
+        
+        try {
+          // Upsert using POST with resolution=merge-duplicates
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/config`, {
+             method: 'POST',
+             headers: { ...supabaseHeaders(), 'Prefer': 'resolution=merge-duplicates, return=minimal' },
+             body: JSON.stringify({ key: `${currentSched}_players_data`, value: jsonStr })
+          });
+          if(res.ok) {
+             showAdminToast(`Player Stats Saved!`, 'success');
+             latestPlayersData = jsonStr;
+          } else {
+             showAdminToast('Failed to save players.', 'error');
+          }
+        } catch(e) {
+          showAdminToast('Error saving players.', 'error');
+        }
+        savePlayersBtn.disabled = false;
+        savePlayersBtn.textContent = 'Save Stats';
+      };
+    }
 
     saveScoreboardBtn.onclick = async () => {
       const rows = [];
@@ -1982,6 +2218,20 @@
       renderView();
       showAdminToast(`${currentSched.toUpperCase()} dashboard history cleared. Refreshing won't bring it back.`, 'success');
     };
+
+    const toggleFullscreenBtn = document.getElementById('toggleFullscreenBtn');
+    if (toggleFullscreenBtn) {
+       toggleFullscreenBtn.onclick = () => {
+          const card = document.querySelector('#scoreboardView .card');
+          if (card.classList.contains('fullscreen-mode')) {
+             card.classList.remove('fullscreen-mode');
+             toggleFullscreenBtn.innerHTML = '⛶ Full Screen';
+          } else {
+             card.classList.add('fullscreen-mode');
+             toggleFullscreenBtn.innerHTML = '✖ Exit Full Screen';
+          }
+       };
+    }
 
     copyTopTeamsBtn.onclick = async () => {
       // ... same logic as before ...
@@ -2063,52 +2313,157 @@
       const displayDate = scoreboardDatePicker.value || new Date().toISOString().slice(0, 10);
       const timestampLabel = displayDate;
 
+      // Extract player stats
+      const playerRowsHtml = [];
+      const pRows = adminPlayersBody.querySelectorAll('tr');
+      pRows.forEach(tr => {
+         const isHeader = tr.cells.length === 1 && tr.cells[0].colSpan > 1;
+         if (isHeader) {
+            playerRowsHtml.push(`<tr><td colspan="5" style="background:rgba(15,23,42,0.95); color:#4dd0e1; text-align:center; padding:6px; font-weight:bold; letter-spacing:1px; font-size:12px;">${tr.textContent}</td></tr>`);
+         } else {
+            const name = tr.querySelector('input[data-field="name"]')?.value || '---';
+            const r1 = tr.querySelector('input[data-field="r1"]')?.value || '-';
+            const r2 = tr.querySelector('input[data-field="r2"]')?.value || '-';
+            const r3 = tr.querySelector('input[data-field="r3"]')?.value || '-';
+            const tot = tr.querySelector('.p-total')?.textContent || '-';
+            playerRowsHtml.push(`
+              <tr style="background: rgba(30,41,59,0.5);">
+                <td style="text-align:left; padding:6px 10px; color:#cbd5e1; font-size:12px; border-bottom:1px solid rgba(51,65,85,0.5);">${name}</td>
+                <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r1}</td>
+                <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r2}</td>
+                <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r3}</td>
+                <td style="text-align:center; color:#facc15; font-weight:bold; border-bottom:1px solid rgba(51,65,85,0.5);">${tot}</td>
+              </tr>
+            `);
+         }
+      });
+
+      const adminDateText = document.getElementById('adminDateDisplay') ? document.getElementById('adminDateDisplay').textContent : '';
+      const sumTop1Team = document.getElementById('adminSumTop1') ? document.getElementById('adminSumTop1').textContent : '';
+      const ptsTop1Team = document.getElementById('adminPtsTop1') ? document.getElementById('adminPtsTop1').textContent : '';
+      const sumTop2Team = document.getElementById('adminSumTop2') ? document.getElementById('adminSumTop2').textContent : '';
+      const ptsTop2Team = document.getElementById('adminPtsTop2') ? document.getElementById('adminPtsTop2').textContent : '';
+      const sumTop3Team = document.getElementById('adminSumTop3') ? document.getElementById('adminSumTop3').textContent : '';
+      const ptsTop3Team = document.getElementById('adminPtsTop3') ? document.getElementById('adminPtsTop3').textContent : '';
+      const sumMVPName = document.getElementById('adminSumMVP') ? document.getElementById('adminSumMVP').textContent : '';
+      const ptsMVPKills = document.getElementById('adminPtsMVP') ? document.getElementById('adminPtsMVP').textContent : '';
+
+
+      const half = Math.ceil(rows.length / 2);
+      const leftColRows = rows.slice(0, half);
+      const rightColRows = rows.slice(half);
+
+      const tableHeader = `
+        <thead>
+          <tr style="background: #1e3a8a; color: #e0f2fe; font-size: 16px; font-family: 'Inter', sans-serif;">
+            <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: center;">RANK</th>
+            <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: left;">TEAM NAME</th>
+            <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: center;">R1</th>
+            <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: center;">PP1</th>
+            <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: center;">R2</th>
+            <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: center;">PP2</th>
+            <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: center;">R3</th>
+            <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: center;">PP3</th>
+            <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: center; color: #facc15;">TOTAL</th>
+          </tr>
+        </thead>
+      `;
+
+      const buildTableContent = (targetRows, startIndex) => {
+        return targetRows.map((r, i) => `
+          <tr style="background: ${(startIndex + i) % 2 === 0 ? 'rgba(15, 23, 42, 0.5)' : 'transparent'};">
+            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold; font-size: 16px;">${startIndex + i + 1}</td>
+            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: left; font-weight: 500; font-size: 16px; color: #fff; letter-spacing: 0.5px;">${r.team}</td>
+            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.r1 || '-'}</td>
+            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.pp1 || '-'}</td>
+            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.r2 || '-'}</td>
+            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.pp2 || '-'}</td>
+            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.r3 || '-'}</td>
+            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-size: 16px;">${r.pp3 || '-'}</td>
+            <td style="padding: 6px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold; font-size: 16px; color: #facc15;">${r.total || '0'}</td>
+          </tr>
+        `).join('');
+      };
+
       const container = document.createElement('div');
       container.style.position = 'fixed';
       container.style.left = '-9999px';
       container.style.top = '0';
-      container.style.width = '800px';
-      container.style.padding = '30px';
-      container.style.background = 'radial-gradient(circle at top, #020617 0%, #000 100%)';
+      container.style.width = '1080px'; // Optimized for mobile
+      container.style.padding = '35px';
+      // Real Thunder Electric Blue background
+      container.style.background = "linear-gradient(rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.90)), url('https://images.unsplash.com/photo-1605722243979-fc085eb054ef?q=80&w=1280&auto=format&fit=crop') center/cover no-repeat";
+      container.style.backgroundColor = '#020617';
       container.style.color = '#e5e7eb';
       container.style.fontFamily = "'Inter', sans-serif";
 
       container.innerHTML = `
         <div style="text-align: center; margin-bottom: 25px;">
-          <h1 style="margin: 0; font-size: 28px; color: #facc15; letter-spacing: 0.05em;">A51 ASTRAL SCRIM RESULTS</h1>
-          <div style="font-size: 14px; color: #9ca3af; margin-top: 5px;">${currentSched.toUpperCase()} SESSION · ${timestampLabel}</div>
+           <h1 style="margin: 0; font-size: 55px; color: #facc15; letter-spacing: 0.05em; font-family: 'Teko', sans-serif; text-shadow: 0px 4px 15px rgba(234, 179, 8, 0.3), 2px 2px 0px #000;">A51 ASTRAL SCRIM RESULTS - ${currentSched.toUpperCase()}</h1>
         </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-          <thead>
-            <tr style="background: rgba(15, 23, 42, 0.95);">
-              <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: center; color: #9ca3af;">RANK</th>
-              <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: left; color: #9ca3af;">TEAM NAME</th>
-              <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: center; color: #9ca3af;">R1</th>
-              <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: center; color: #9ca3af;">PP1</th>
-              <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: center; color: #9ca3af;">R2</th>
-              <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: center; color: #9ca3af;">PP2</th>
-              <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: center; color: #9ca3af;">R3</th>
-              <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: center; color: #9ca3af;">PP3</th>
-              <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: center; color: #facc15;">TOTAL</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map((r, i) => `
-              <tr style="background: ${i % 2 === 0 ? 'rgba(15, 23, 42, 0.5)' : 'transparent'};">
-                <td style="padding: 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold;">${i + 1}</td>
-                <td style="padding: 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: left; font-weight: 600; color: #fff;">${r.team}</td>
-                <td style="padding: 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.r1 || '-'}</td>
-                <td style="padding: 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.pp1 || '-'}</td>
-                <td style="padding: 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.r2 || '-'}</td>
-                <td style="padding: 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.pp2 || '-'}</td>
-                <td style="padding: 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.r3 || '-'}</td>
-                <td style="padding: 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.pp3 || '-'}</td>
-                <td style="padding: 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold; color: #facc15;">${r.total || '0'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        <div style="text-align: right; margin-top: 15px; font-size: 11px; color: #64748b;">
+        <div style="display:flex; gap:35px; align-items:center; justify-content:center;">
+          <!-- Left side scoreboard (Single vertical column) -->
+          <div style="flex:1; display:flex;">
+             <table style="width:100%; border-collapse: collapse; font-family: 'Inter', sans-serif;">
+              ${tableHeader}
+              <tbody>${buildTableContent(rows, 0)}</bbox>
+             </table>
+          </div>
+          
+          <!-- Right side player stats -->
+          <div style="width: 440px; display:flex; flex-direction:column; gap:30px;">
+             <div>
+               <table style="width:100%; border-collapse:collapse; font-size:16px; border: 1px solid rgba(51,65,85,0.5); font-family: 'Inter', sans-serif;">
+                  <thead>
+                     <tr style="color:#e2e8f0; font-size:16px; letter-spacing:1px;">
+                        <th rowspan="2" style="background: #1e3a8a; padding:10px 6px; text-align:left; padding-left:12px; vertical-align:middle; border-bottom:1px solid #1e40af;">IN-GAME NAME</th>
+                        <th colspan="3" style="background: #1e3a8a; padding:10px 6px; border-bottom:1px solid #1e40af;">KILLS</th>
+                        <th rowspan="2" style="background: #1e3a8a; padding:10px 6px; vertical-align:middle; border-bottom:1px solid #1e40af;">TOTAL</th>
+                     </tr>
+                     <tr style="color:#e2e8f0; font-size:14px; letter-spacing:1px;">
+                        <th style="background:#1d4ed8; padding:4px; border-bottom:1px solid #1d4ed8;">R1</th>
+                        <th style="background:#1d4ed8; padding:4px; border-bottom:1px solid #1d4ed8;">R2</th>
+                        <th style="background:#1d4ed8; padding:4px; border-bottom:1px solid #1d4ed8;">R3</th>
+                     </tr>
+                  </thead>
+                  <tbody style="background: rgba(15,23,42,0.6);">
+                     ${playerRowsHtml.join('').replace(/font-size:12px/g, 'font-size:16px').replace(/padding:6px 10px/g, 'padding:8px').replace('background:#0f172a', 'background:rgba(30,58,138,0.7)')}
+                  </tbody>
+               </table>
+             </div>
+             <div>
+               <div style="font-family:'Teko', sans-serif; font-size:55px; font-weight:600; text-align:center; color:#e2e8f0; background:#334155; padding:6px 0 0 0; border:1px solid #1e293b; line-height:1; letter-spacing: 2px;">
+                 ${adminDateText}
+               </div>
+               
+               <table style="width:100%; border-collapse:collapse; border:1px solid #0f172a; font-size:18px; letter-spacing:1px; margin-top:5px;">
+                 <tbody>
+                    <tr>
+                      <td style="background:#475569; color:#f8fafc; padding:6px; text-align:center; width:25%;">TOP 1</td>
+                      <td style="background:#1e293b; color:#f8fafc; padding:6px; text-align:center; width:55%; font-size:20px;">${sumTop1Team}</td>
+                      <td style="background:#334155; color:#f8fafc; padding:6px; text-align:center; width:20%; border-left:1px solid #0f172a; font-size:20px;">${ptsTop1Team}</td>
+                    </tr>
+                    <tr>
+                      <td style="background:#475569; color:#f8fafc; padding:6px; text-align:center;">TOP 2</td>
+                      <td style="background:#1e293b; color:#f8fafc; padding:6px; text-align:center; font-size:20px;">${sumTop2Team}</td>
+                      <td style="background:#334155; color:#f8fafc; padding:6px; text-align:center; border-left:1px solid #0f172a; font-size:20px;">${ptsTop2Team}</td>
+                    </tr>
+                    <tr>
+                      <td style="background:#475569; color:#f8fafc; padding:6px; text-align:center;">TOP 3</td>
+                      <td style="background:#1e293b; color:#f8fafc; padding:6px; text-align:center; font-size:20px;">${sumTop3Team}</td>
+                      <td style="background:#334155; color:#f8fafc; padding:6px; text-align:center; border-left:1px solid #0f172a; font-size:20px;">${ptsTop3Team}</td>
+                    </tr>
+                    <tr>
+                      <td style="background:#475569; color:#f8fafc; padding:6px; text-align:center;">MVP</td>
+                      <td style="background:#1e293b; color:#facc15; padding:6px; text-align:center; font-size:20px; font-weight:600;">${sumMVPName}</td>
+                      <td style="background:#334155; color:#f8fafc; padding:6px; text-align:center; border-left:1px solid #0f172a; font-size:20px;">${ptsMVPKills}</td>
+                    </tr>
+                 </tbody>
+               </table>
+             </div>
+          </div>
+        </div>
+        <div style="text-align: right; margin-top: 15px; font-size: 14px; color: #64748b; letter-spacing: 1px;">
           A51 ASTRAL SCRIM MANAGEMENT SYSTEM
         </div>
       `;
