@@ -999,6 +999,11 @@
       switcherDiv.style.display = 'flex';
       switcherDiv.style.gap = '8px';
 
+      const btn6 = document.createElement('button');
+      btn6.className = 'btn btn-ghost';
+      btn6.textContent = '6:00 PM View';
+      btn6.style.padding = '5px 12px';
+
       const btn8 = document.createElement('button');
       btn8.className = 'btn btn-update';
       btn8.textContent = '8:00 PM View';
@@ -1010,21 +1015,19 @@
       btn10.style.padding = '5px 12px';
 
       const updateActive = () => {
-        if (currentSched === '8pm') {
-          btn8.className = 'btn btn-update';
-          btn10.className = 'btn btn-ghost';
-        } else {
-          btn10.className = 'btn btn-update';
-          btn8.className = 'btn btn-ghost';
-        }
+        btn6.className = currentSched === '6pm' ? 'btn btn-update' : 'btn btn-ghost';
+        btn8.className = currentSched === '8pm' ? 'btn btn-update' : 'btn btn-ghost';
+        btn10.className = currentSched === '10pm' ? 'btn btn-update' : 'btn btn-ghost';
         if (typeof viewSubtitle !== 'undefined') {
           viewSubtitle.textContent = `Managing ${currentSched.toUpperCase()} Scrim data.`;
         }
       };
 
+      btn6.onclick = () => { currentSched = '6pm'; updateActive(); loadAdminSlots(); checkGlobalStatus(); };
       btn8.onclick = () => { currentSched = '8pm'; updateActive(); loadAdminSlots(); checkGlobalStatus(); };
       btn10.onclick = () => { currentSched = '10pm'; updateActive(); loadAdminSlots(); checkGlobalStatus(); };
 
+      switcherDiv.appendChild(btn6);
       switcherDiv.appendChild(btn8);
       switcherDiv.appendChild(btn10);
       headerBlock.appendChild(switcherDiv);
