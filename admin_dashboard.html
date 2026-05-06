@@ -37,9 +37,10 @@
     }
 
     .page {
-      max-width: 1100px;
-      margin: 32px auto 40px;
-      padding: 0 16px;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
     }
 
     header {
@@ -81,18 +82,21 @@
     /* Layout with side panel */
     .layout {
       display: grid;
-      grid-template-columns: 210px minmax(0, 1fr);
-      gap: 18px;
-      align-items: flex-start;
+      grid-template-columns: 260px 1fr;
+      gap: 0;
+      align-items: stretch;
+      min-height: 100vh;
     }
 
     .sidebar {
-      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), rgba(15, 23, 42, 0.96));
-      border-radius: 18px;
-      padding: 14px 12px 12px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.95);
-      height: 100%;
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), rgba(15, 23, 42, 0.98));
+      padding: 24px 16px;
+      border-right: 1px solid rgba(148, 163, 184, 0.3);
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      border-radius: 0;
+      z-index: 100;
     }
 
     .sidebar-title {
@@ -148,6 +152,8 @@
 
     .main-view {
       min-width: 0;
+      padding: 30px 40px;
+      background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.05), transparent);
     }
 
     .card {
@@ -964,16 +970,16 @@
         <div id="bannedView" style="display:none;">
           <div class="card">
             <div class="card-header">
-              <div style="font-size:14px; font-weight:600;">Banned Teams List</div>
+              <div style="font-size:14px; font-weight:600;">Banned & Warning Teams List</div>
               <button id="saveBannedBtn" class="btn btn-update"
-                style="font-size:11px; padding:6px 10px; background: #ef4444; color: #fff; border-color: #dc2626;">
-                Save Banned List
+                style="font-size:11px; padding:6px 14px; background: #ef4444; color: #fff; border-color: #dc2626; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                Save All Lists
               </button>
             </div>
             <div style="font-size:12px; color:#9ca3af; margin-bottom:12px;">
-              Manage the list of banned teams here. Type the team names line by line (row by row) under each column.
+              Manage banned and warned teams. Type team names line by line under each column.
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
               <div>
                 <div
                   style="font-size:11px; font-weight:bold; color:#fca5a5; margin-bottom:6px; text-transform:uppercase;">
@@ -997,6 +1003,14 @@
                 <textarea id="bannedPerm"
                   style="width:100%; height:250px; background:rgba(15,23,42,0.9); border:1px solid rgba(239,68,68,0.5); border-radius:12px; padding:12px; color:#e5e7eb; font-size:12px; outline:none; resize:vertical; font-family:monospace;"
                   placeholder="CLAN TAG - CLAN NAME&#10;Ex: A51 - ASTRAL 51"></textarea>
+              </div>
+              <div>
+                <div
+                  style="font-size:11px; font-weight:bold; color:#fef08a; margin-bottom:6px; text-transform:uppercase;">
+                  ⚠️ WARNING LIST</div>
+                <textarea id="warningList"
+                  style="width:100%; height:250px; background:rgba(15,23,42,0.9); border:1px solid rgba(254, 240, 138, 0.3); border-radius:12px; padding:12px; color:#e5e7eb; font-size:12px; outline:none; resize:vertical; font-family:monospace;"
+                  placeholder="TEAM NAME (REASON)&#10;Ex: A51 (Warning 1)"></textarea>
               </div>
             </div>
           </div>
@@ -1117,6 +1131,7 @@
     const bannedNoShow = document.getElementById('bannedNoShow');
     const bannedLateCancel = document.getElementById('bannedLateCancel');
     const bannedPerm = document.getElementById('bannedPerm');
+    const warningList = document.getElementById('warningList');
     const viewSubtitle = document.getElementById('viewSubtitle');
     const reservationStatusLabel = document.getElementById('reservationStatusLabel');
     const toggleOpenBtn = document.getElementById('toggleOpenBtn');
@@ -1471,7 +1486,7 @@
 
       if (view === 'scrim') viewSubtitle.textContent = 'Overview of all reserved slots and clan usage.';
       else if (view === 'scoreboard') viewSubtitle.textContent = 'Manage points and standings for the current event.';
-      else if (view === 'banned') viewSubtitle.textContent = `Managing ${currentSched.toUpperCase()} Banned Teams.`;
+      else if (view === 'banned') viewSubtitle.textContent = `Managing ${currentSched.toUpperCase()} Banned & Warning Teams.`;
     }
 
     function renderView() {
@@ -2234,8 +2249,8 @@
           return rTag === tag;
         }).length;
 
-        if (groupCount >= 3) {
-          showAdminToast(`Limit reached! Max 3 slots for "${tag}" group.`, 'error');
+        if (groupCount >= 5) {
+          showAdminToast(`Limit reached! Max 5 slots for "${tag}" group.`, 'error');
           adminReserveSubmit.disabled = false;
           return;
         }
@@ -2741,10 +2756,11 @@
     }
 
     async function loadBannedList() {
-      // Clear fields first to avoid showing data from another schedule if the new one is empty
+      // Clear fields first
       if (bannedNoShow) bannedNoShow.value = '';
       if (bannedLateCancel) bannedLateCancel.value = '';
       if (bannedPerm) bannedPerm.value = '';
+      if (warningList) warningList.value = '';
 
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${bannedTeamsConfigKey()}`, {
@@ -2767,8 +2783,8 @@
             if (bannedNoShow) bannedNoShow.value = parsed.noShow || '';
             if (bannedLateCancel) bannedLateCancel.value = parsed.lateCancel || '';
             if (bannedPerm) bannedPerm.value = parsed.perm || '';
+            if (warningList) warningList.value = parsed.warning || '';
           } catch (e) {
-            // Legacy support if value is not JSON
             if (bannedNoShow) bannedNoShow.value = data[0].value;
           }
         }
@@ -2785,7 +2801,8 @@
           const payload = {
             noShow: bannedNoShow ? bannedNoShow.value : '',
             lateCancel: bannedLateCancel ? bannedLateCancel.value : '',
-            perm: bannedPerm ? bannedPerm.value : ''
+            perm: bannedPerm ? bannedPerm.value : '',
+            warning: warningList ? warningList.value : ''
           };
           const res = await fetch(`${SUPABASE_URL}/rest/v1/config`, {
             method: 'POST',
@@ -2793,15 +2810,15 @@
             body: JSON.stringify({ key: bannedTeamsConfigKey(), value: JSON.stringify(payload) })
           });
           if (res.ok) {
-            showAdminToast('Banned Teams Saved!', 'success');
+            showAdminToast('All Lists Saved!', 'success');
           } else {
-            showAdminToast('Failed to save banned teams.', 'error');
+            showAdminToast('Failed to save lists.', 'error');
           }
         } catch (e) {
-          showAdminToast('Error saving banned teams.', 'error');
+          showAdminToast('Error saving lists.', 'error');
         }
         saveBannedBtn.disabled = false;
-        saveBannedBtn.textContent = 'Save Banned List';
+        saveBannedBtn.textContent = 'Save All Lists';
       };
     }
 
