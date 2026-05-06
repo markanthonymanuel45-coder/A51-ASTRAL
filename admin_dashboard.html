@@ -723,6 +723,10 @@
             Scoreboard
             <span></span>
           </button>
+          <button id="navBanned" class="sidebar-item">
+            Banned Teams
+            <span></span>
+          </button>
           <button id="logoutBtn" class="sidebar-item"
             style="margin-top: auto; color: #fca5a5; border-color: rgba(239, 68, 68, 0.2);">
             Logout
@@ -807,8 +811,9 @@
                   <input type="date" id="scoreboardDatePicker"
                     style="padding: 4px 6px; border-radius: 6px; border: 1px solid rgba(148,163,184,0.5); background: rgba(15,23,42,0.9); color: #e5e7eb; font-size: 11px; width: 110px; outline: none;">
                 </div>
-                <button id="saveScoreboardBtn" class="btn btn-ghost" style="font-size:11px; padding:6px 10px;">
-                  Save scoreboard
+                <button id="saveScoreboardBtn" class="btn btn-update"
+                  style="font-size:11px; padding:6px 10px; background: #10b981; color: #fff; border-color: #059669;">
+                  💾 Save Record
                 </button>
                 <button id="toggleFullscreenBtn" class="btn btn-update"
                   style="font-size:11px; padding:6px 10px; background: #0284c7; border-color: #0369a1;">
@@ -881,7 +886,7 @@
                 <div
                   style="font-size:12px; font-weight:600; color:#bfdbfe; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
                   TOP PLAYERS STATS
-                  <button id="savePlayersBtn" class="btn btn-update" style="padding:4px 8px; font-size:10px;">Save
+                  <button id="savePlayersBtn" class="btn btn-update" style="display:none;">Save
                     Stats</button>
                 </div>
                 <div style="font-size:10px; color:#9ca3af; margin-bottom:10px;">Type player names & stats based on Top 3
@@ -954,8 +959,50 @@
             </div>
           </div>
         </div>
-      </div>
 
+        <!-- BANNED TEAMS VIEW -->
+        <div id="bannedView" style="display:none;">
+          <div class="card">
+            <div class="card-header">
+              <div style="font-size:14px; font-weight:600;">Banned Teams List</div>
+              <button id="saveBannedBtn" class="btn btn-update"
+                style="font-size:11px; padding:6px 10px; background: #ef4444; color: #fff; border-color: #dc2626;">
+                Save Banned List
+              </button>
+            </div>
+            <div style="font-size:12px; color:#9ca3af; margin-bottom:12px;">
+              Manage the list of banned teams here. Type the team names line by line (row by row) under each column.
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+              <div>
+                <div
+                  style="font-size:11px; font-weight:bold; color:#fca5a5; margin-bottom:6px; text-transform:uppercase;">
+                  🚫 NO SHOW</div>
+                <textarea id="bannedNoShow"
+                  style="width:100%; height:250px; background:rgba(15,23,42,0.9); border:1px solid rgba(55,65,81,0.9); border-radius:12px; padding:12px; color:#e5e7eb; font-size:12px; outline:none; resize:vertical; font-family:monospace;"
+                  placeholder="TEAM NAME (DAYS)&#10;Ex: A51 (3 Days)"></textarea>
+              </div>
+              <div>
+                <div
+                  style="font-size:11px; font-weight:bold; color:#fca5a5; margin-bottom:6px; text-transform:uppercase;">
+                  🚫 LATE CANCELLATION</div>
+                <textarea id="bannedLateCancel"
+                  style="width:100%; height:250px; background:rgba(15,23,42,0.9); border:1px solid rgba(55,65,81,0.9); border-radius:12px; padding:12px; color:#e5e7eb; font-size:12px; outline:none; resize:vertical; font-family:monospace;"
+                  placeholder="TEAM NAME (DAYS)&#10;Ex: ZRM (2 Days)"></textarea>
+              </div>
+              <div>
+                <div
+                  style="font-size:11px; font-weight:bold; color:#ef4444; margin-bottom:6px; text-transform:uppercase;">
+                  🚫 PERMANENT BANNED</div>
+                <textarea id="bannedPerm"
+                  style="width:100%; height:250px; background:rgba(15,23,42,0.9); border:1px solid rgba(239,68,68,0.5); border-radius:12px; padding:12px; color:#e5e7eb; font-size:12px; outline:none; resize:vertical; font-family:monospace;"
+                  placeholder="CLAN TAG - CLAN NAME&#10;Ex: A51 - ASTRAL 51"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
   </div>
@@ -1062,8 +1109,14 @@
 
     const navScrim = document.getElementById('navScrim');
     const navScoreboard = document.getElementById('navScoreboard');
+    const navBanned = document.getElementById('navBanned');
     const scrimView = document.getElementById('scrimView');
     const scoreboardView = document.getElementById('scoreboardView');
+    const bannedView = document.getElementById('bannedView');
+    const saveBannedBtn = document.getElementById('saveBannedBtn');
+    const bannedNoShow = document.getElementById('bannedNoShow');
+    const bannedLateCancel = document.getElementById('bannedLateCancel');
+    const bannedPerm = document.getElementById('bannedPerm');
     const viewSubtitle = document.getElementById('viewSubtitle');
     const reservationStatusLabel = document.getElementById('reservationStatusLabel');
     const toggleOpenBtn = document.getElementById('toggleOpenBtn');
@@ -1107,6 +1160,11 @@
     let adminPopupResolver = null;
     let currentSched = '8pm'; // DEFAULT VIEW
 
+    function bannedTeamsConfigKey(sched = currentSched) {
+      const s = (sched || '').toString().trim().toLowerCase();
+      return `banned_teams_list_${s}`;
+    }
+
     function normalize(str) {
       return (str || '').toString().trim().toLowerCase();
     }
@@ -1145,9 +1203,18 @@
         }
       };
 
-      btn6.onclick = () => { currentSched = '6pm'; updateActive(); loadAdminSlots(); checkGlobalStatus(); };
-      btn8.onclick = () => { currentSched = '8pm'; updateActive(); loadAdminSlots(); checkGlobalStatus(); };
-      btn10.onclick = () => { currentSched = '10pm'; updateActive(); loadAdminSlots(); checkGlobalStatus(); };
+      const onSchedChange = async (sched) => {
+        currentSched = sched;
+        updateActive();
+        loadAdminSlots();
+        checkGlobalStatus();
+        if (bannedView && bannedView.style.display !== 'none') {
+          await loadBannedList();
+        }
+      };
+      btn6.onclick = () => { onSchedChange('6pm'); };
+      btn8.onclick = () => { onSchedChange('8pm'); };
+      btn10.onclick = () => { onSchedChange('10pm'); };
 
       switcherDiv.appendChild(btn6);
       switcherDiv.appendChild(btn8);
@@ -1396,12 +1463,15 @@
     function setActiveView(view) {
       scrimView.style.display = view === 'scrim' ? 'block' : 'none';
       scoreboardView.style.display = view === 'scoreboard' ? 'block' : 'none';
+      bannedView.style.display = view === 'banned' ? 'block' : 'none';
 
       navScrim.classList.toggle('active', view === 'scrim');
       navScoreboard.classList.toggle('active', view === 'scoreboard');
+      if (navBanned) navBanned.classList.toggle('active', view === 'banned');
 
       if (view === 'scrim') viewSubtitle.textContent = 'Overview of all reserved slots and clan usage.';
       else if (view === 'scoreboard') viewSubtitle.textContent = 'Manage points and standings for the current event.';
+      else if (view === 'banned') viewSubtitle.textContent = `Managing ${currentSched.toUpperCase()} Banned Teams.`;
     }
 
     function renderView() {
@@ -1663,7 +1733,11 @@
           const top3 = combinedResults.slice().sort((a, b) => {
             const vB = parseInt(b.score?.total || 0, 10) || 0;
             const vA = parseInt(a.score?.total || 0, 10) || 0;
-            return vB - vA;
+            if (vB !== vA) return vB - vA;
+            // TIE BREAKER RULE
+            const kA = (parseInt(a.score?.r1, 10) || 0) + (parseInt(a.score?.r2, 10) || 0) + (parseInt(a.score?.r3, 10) || 0);
+            const kB = (parseInt(b.score?.r1, 10) || 0) + (parseInt(b.score?.r2, 10) || 0) + (parseInt(b.score?.r3, 10) || 0);
+            return kB - kA;
           }).slice(0, 3);
 
           let savedPlayers = [];
@@ -1705,6 +1779,7 @@
           // Re-calculate local MVP stats instantly for preview
           const recalcStats = () => {
             let maxKills = 0;
+            let maxSingleRound = 0;
             let maxName = 'PENDING TO UPDATE';
             const top1TeamName = top3[0] ? top3[0].clan : null;
 
@@ -1715,11 +1790,14 @@
               const pTeam = nameInp.getAttribute('data-team');
               const kills = tr.querySelectorAll('.p-kill');
               let sum = 0;
+              let singleMax = 0;
               let hasAny = false;
               kills.forEach(k => {
                 if (k.value.trim() !== '') {
                   hasAny = true;
-                  sum += (parseInt(k.value.trim(), 10) || 0);
+                  let v = parseInt(k.value.trim(), 10) || 0;
+                  sum += v;
+                  if (v > singleMax) singleMax = v;
                 }
               });
               const totTd = tr.querySelector('.p-total');
@@ -1727,9 +1805,15 @@
 
               const pName = nameInp.value.trim();
               // Compute MVP ONLY for Top 1 team players
-              if (pTeam === top1TeamName && hasAny && pName && sum > maxKills) {
-                maxKills = sum;
-                maxName = pName;
+              if (pTeam === top1TeamName && hasAny && pName) {
+                if (sum > maxKills) {
+                  maxKills = sum;
+                  maxSingleRound = singleMax;
+                  maxName = pName;
+                } else if (sum === maxKills && singleMax > maxSingleRound && sum > 0) {
+                  maxSingleRound = singleMax;
+                  maxName = pName;
+                }
               }
             });
             const adminSumMVP = document.getElementById('adminSumMVP');
@@ -1938,14 +2022,73 @@
     });
 
     copySlotsBtn.addEventListener('click', async () => {
-      let text = "‼️𝑨51 𝑩𝑹 𝑺𝑪𝑹𝑰𝑴𝑴𝑰𝑴𝑨𝑮𝑬‼️\n\n\n𝑺𝑳𝑶𝑻𝑺 𝑳𝑰𝑺𝑻 :\n";
+      const d = new Date(); // Always use today's exact date for slot listing
+      const options = { month: 'long', day: 'numeric', year: 'numeric' };
+      const formattedDate = d.toLocaleDateString('en-US', options).toUpperCase();
+      const schedFormatted = currentSched.toUpperCase();
+      let openRoomTime = schedFormatted.replace('PM', ':00 PM').replace('AM', ':00 AM');
+
+      let text = `‼️𝑨51 𝑩𝑹 𝑺𝑪𝑹𝑰𝑴𝑴𝑰𝑴𝑨𝑮𝑬‼️\n\n`;
+      text += `📅 𝐃𝐀𝐓𝐄: ${formattedDate}\n`;
+      text += `⏰ 𝐒𝐂𝐇𝐄𝐃𝐔𝐋𝐄: ${schedFormatted}\n`;
+      text += `🚪 OPEN ROOM: ${openRoomTime}\n\n`;
+      text += `𝑺𝑳𝑶𝑻𝑺 𝑳𝑰𝑺𝑻 :\n`;
       for (let i = 1; i <= MAX_SLOTS; i++) {
         const existing = latestSlots.find(x => x.slot === i);
         const clanName = existing && existing.clan ? existing.clan.trim() : '';
         text += `${i}. ${clanName}\n`;
       }
 
-      text += "\n\n𝙼𝙴𝙽𝚃𝙸𝙾𝙽 𝚃𝙷𝙴 𝙰𝙳𝙼𝙸𝙽𝚂 𝙸𝙵 𝚃𝙷𝙴𝚁𝙴 𝙸𝚂 𝙰 𝙲𝙷𝙰𝙽𝙶𝙸𝙽𝙶. \n𝙳𝙾 𝙽𝙾𝚃 𝙴𝙳𝙸𝚃!\n\n\n🚫 𝑩𝑨𝑵𝑵𝑬𝑫 𝑻𝑬𝑨𝑴𝑺  (𝗡𝗢𝗦𝗛𝗢𝗪) 5 SCRIMS:   \n\n\n\n‼️𝗟𝗔𝗧𝗘 𝗖𝗔𝗡𝗖𝗘𝗟𝗟𝗔𝚃𝙸𝙾𝙽‼️\n🚫BANNED 3 SCRIMS👽\n-\n \n𝚁𝚄𝙻𝙴𝚂! ⬇️\nhttps://www.facebook.com/share/p/1BZZxfAmD8/";
+      text += "\n\n𝙼𝙴𝙽𝚃𝙸𝙾𝙽 𝚃𝙷𝙴 𝙰𝙳𝙼𝙸𝙽𝚂 𝙸𝙵 𝚃𝙷𝙴𝚁𝙴 𝙸𝚂 𝙰 𝙲𝙷𝙰𝙽𝙶𝙸𝙽𝙶. \n𝙳𝙾 𝙽𝙾𝚃 𝙴𝙳𝙸𝚃!\n\n\n";
+
+      const formatBannedList = (str) => {
+        if (!str) return '-\n';
+        const lines = str.split('\n').map(l => l.trim()).filter(l => l);
+        if (lines.length === 0) return '-\n';
+        return lines.map(l => `- ${l}`).join('\n') + '\n';
+      };
+
+      try {
+        let banRes = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${bannedTeamsConfigKey()}`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+        });
+        let banData = await banRes.json();
+        
+        // Fallback logic
+        const usedFallback = (!banData || banData.length === 0 || !banData[0] || !banData[0].value);
+        if (usedFallback) {
+          const fallbackRes = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.banned_teams_list`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+          });
+          banData = await fallbackRes.json();
+        }
+
+        if (banData && banData.length > 0 && banData[0].value) {
+          let bNoShow = '', bLate = '', bPerm = '';
+          try {
+            const parsed = JSON.parse(banData[0].value);
+            bNoShow = parsed.noShow || '';
+            bLate = parsed.lateCancel || '';
+            bPerm = parsed.perm || '';
+          } catch (e) {
+            // Legacy support
+            bNoShow = banData[0].value || '';
+          }
+
+          text += `🚫 𝑩𝑨𝑵𝑵𝑬𝑫 𝑻𝑬𝑨𝑴𝑺  (𝗡𝗢𝗦𝗛𝗢𝗪) 5 SCRIMS:   \n`;
+          text += formatBannedList(bNoShow);
+          text += `\n\n‼️𝗟𝗔𝗧𝗘 𝗖𝗔𝗡𝗖𝗘𝗟𝗟𝗔𝚃𝙸𝙾𝙽‼️\n🚫BANNED 3 SCRIMS👽\n`;
+          text += formatBannedList(bLate);
+          text += ` \n‼️PERMANENT BANNED‼️\n`;
+          text += formatBannedList(bPerm);
+        } else {
+          text += `🚫 𝑩𝑨𝑵𝑵𝑬𝑫 𝑻𝑬𝑨𝑴𝑺  (𝗡𝗢𝗦𝗛𝗢𝗪) 5 SCRIMS:   \n-\n\n\n‼️𝗟𝗔𝗧𝗘 𝗖𝗔𝗡𝗖𝗘𝗟𝗟𝗔𝚃𝙸𝙾𝙽‼️\n🚫BANNED 3 SCRIMS👽\n-\n \n‼️PERMANENT BANNED‼️\n-\n`;
+        }
+      } catch (e) {
+        text += `🚫 𝑩𝑨𝑵𝑵𝑬𝑫 𝑻𝑬𝑨𝑴𝑺  (𝗡𝗢𝗦𝗛𝗢𝗪) 5 SCRIMS:   \n-\n\n\n‼️𝗟𝗔𝗧𝗘 𝗖𝗔𝗡𝗖𝗘𝗟𝗟𝗔𝚃𝙸𝙾𝙽‼️\n🚫BANNED 3 SCRIMS👽\n-\n \n‼️PERMANENT BANNED‼️\n-\n`;
+      }
+
+      text += `\n𝚁𝚄𝙻𝙴𝚂! ⬇️\nhttps://www.facebook.com/share/p/1BZZxfAmD8/`;
 
       try {
         await navigator.clipboard.writeText(text);
@@ -2229,7 +2372,9 @@
           localStorage.removeItem(`hideScoreHistory_${currentSched}`);
           latestScoreboardData = rows;
 
-          latestScoreboardData = rows;
+          if (savePlayersBtn && !savePlayersBtn.disabled) {
+            savePlayersBtn.click();
+          }
 
           fetch('https://api.github.com/repos/markanthonymanuel45-coder/A51-ASTRAL/dispatches', {
             method: 'POST',
@@ -2271,16 +2416,19 @@
     }
 
     copyTopTeamsBtn.onclick = async () => {
-      // ... same logic as before ...
       // Get data from the UI rows
       const rows = [];
       scoreboardBody.querySelectorAll('tr').forEach(tr => {
         const cells = tr.querySelectorAll('td');
         if (cells.length < 9) return;
         const team = cells[1].textContent;
+        const r1 = parseInt(cells[2].querySelector('input')?.value || '0', 10);
+        const r2 = parseInt(cells[4].querySelector('input')?.value || '0', 10);
+        const r3 = parseInt(cells[6].querySelector('input')?.value || '0', 10);
         const total = parseInt(cells[8].querySelector('input')?.value || '0', 10);
         if (team && team !== '—') {
-          rows.push({ team, total });
+          const maxKills = Math.max(isNaN(r1) ? 0 : r1, isNaN(r2) ? 0 : r2, isNaN(r3) ? 0 : r3);
+          rows.push({ team, total, maxKills });
         }
       });
 
@@ -2289,25 +2437,31 @@
         return;
       }
 
-      // Sort by total points descending
-      rows.sort((a, b) => b.total - a.total);
+      // Sort by total points descending, then tie-breaker by max kills in a round
+      rows.sort((a, b) => {
+        if (b.total !== a.total) return b.total - a.total;
+        return b.maxKills - a.maxKills;
+      });
 
       const top1 = rows[0]?.team || "";
       const top2 = rows[1]?.team || "";
       const top3 = rows[2]?.team || "";
 
-      // Dynamic month/year
-      const now = new Date();
-      const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-      const currentMonth = monthNames[now.getMonth()];
-      const currentYear = now.getFullYear();
+      // Dynamic Date
+      const rawDate = scoreboardDatePicker.value || new Date().toISOString().slice(0, 10);
+      const d = new Date(rawDate);
+      const options = { month: 'long', day: 'numeric', year: 'numeric' };
+      const formattedDate = d.toLocaleDateString('en-US', options).toUpperCase();
+
+      const sumMVPName = document.getElementById('adminSumMVP') ? document.getElementById('adminSumMVP').textContent : 'PENDING';
+      const ptsMVPKills = document.getElementById('adminPtsMVP') ? document.getElementById('adminPtsMVP').textContent : '';
 
       let text = `👽𝐂𝐎𝐍𝐆𝐑𝐀𝐓𝐔𝐋𝐀𝐓𝐈𝐎𝐍𝐒 𝐓𝐎 𝐓𝐇𝐄 𝐓𝐎𝐏 𝐓𝐄𝐀𝐌𝐒 👽\n\n`;
-      text += `${currentMonth} , ${currentYear} | ${currentSched.toUpperCase()}\n`;
+      text += `📅 𝐃𝐀𝐓𝐄: ${formattedDate} | ${currentSched.toUpperCase()}\n`;
       text += `🥇 𝐓𝐎𝐏 𝟏: ${top1}\n`;
       text += `🥈 𝐓𝐎𝐏 𝟐: ${top2}\n`;
       text += `🥉 𝐓𝐎𝐏 𝟑: ${top3}\n\n`;
-      text += `🎖️ 𝐌𝐕𝐏: \n\n`;
+      text += `🎖️ 𝐌𝐕𝐏: ${sumMVPName} (${ptsMVPKills})\n\n`;
       text += `𝙋𝙇𝙀𝘼𝙎𝙀 𝙎𝙀𝙉𝘿 𝙔𝙊𝙐𝙍 𝙇𝙊𝐆𝙊𝙎 𝘼𝙉𝘿 𝙈𝙑𝐏 𝙋𝙄𝘾𝙎 𝙃𝙀𝙍𝙀.👽`;
 
       try {
@@ -2579,6 +2733,77 @@
 
     navScrim.addEventListener('click', () => setActiveView('scrim'));
     navScoreboard.addEventListener('click', () => setActiveView('scoreboard'));
+    if (navBanned) {
+      navBanned.addEventListener('click', () => {
+        setActiveView('banned');
+        loadBannedList();
+      });
+    }
+
+    async function loadBannedList() {
+      // Clear fields first to avoid showing data from another schedule if the new one is empty
+      if (bannedNoShow) bannedNoShow.value = '';
+      if (bannedLateCancel) bannedLateCancel.value = '';
+      if (bannedPerm) bannedPerm.value = '';
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.${bannedTeamsConfigKey()}`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        });
+        let data = await res.json();
+        
+        // If specific slot key is empty, try the global fallback
+        const usedFallback = (!data || data.length === 0 || !data[0] || !data[0].value);
+        if (usedFallback) {
+          const fallbackRes = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.banned_teams_list`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+          });
+          data = await fallbackRes.json();
+        }
+
+        if (data && data.length > 0 && data[0].value) {
+          try {
+            const parsed = JSON.parse(data[0].value);
+            if (bannedNoShow) bannedNoShow.value = parsed.noShow || '';
+            if (bannedLateCancel) bannedLateCancel.value = parsed.lateCancel || '';
+            if (bannedPerm) bannedPerm.value = parsed.perm || '';
+          } catch (e) {
+            // Legacy support if value is not JSON
+            if (bannedNoShow) bannedNoShow.value = data[0].value;
+          }
+        }
+      } catch (e) { 
+        console.error('Failed to load banned teams.'); 
+      }
+    }
+
+    if (saveBannedBtn) {
+      saveBannedBtn.onclick = async () => {
+        saveBannedBtn.disabled = true;
+        saveBannedBtn.textContent = 'Saving...';
+        try {
+          const payload = {
+            noShow: bannedNoShow ? bannedNoShow.value : '',
+            lateCancel: bannedLateCancel ? bannedLateCancel.value : '',
+            perm: bannedPerm ? bannedPerm.value : ''
+          };
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/config`, {
+            method: 'POST',
+            headers: { ...supabaseHeaders(), 'Prefer': 'resolution=merge-duplicates, return=minimal' },
+            body: JSON.stringify({ key: bannedTeamsConfigKey(), value: JSON.stringify(payload) })
+          });
+          if (res.ok) {
+            showAdminToast('Banned Teams Saved!', 'success');
+          } else {
+            showAdminToast('Failed to save banned teams.', 'error');
+          }
+        } catch (e) {
+          showAdminToast('Error saving banned teams.', 'error');
+        }
+        saveBannedBtn.disabled = false;
+        saveBannedBtn.textContent = 'Save Banned List';
+      };
+    }
 
     setActiveView('scrim');
     loadAdminSlots();
