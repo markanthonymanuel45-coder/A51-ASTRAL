@@ -791,6 +791,14 @@
             Banned Teams
             <span></span>
           </button>
+          <button id="navTournamentSlot" class="sidebar-item">
+            Tournament Slot
+            <span></span>
+          </button>
+          <button id="navTournamentScoreboard" class="sidebar-item">
+            Tournament Scoreboard
+            <span></span>
+          </button>
           <button id="logoutBtn" class="sidebar-item"
             style="margin-top: auto; color: #fca5a5; border-color: rgba(239, 68, 68, 0.2);">
             Logout
@@ -802,10 +810,10 @@
       <div class="main-view">
         <header>
           <div class="title-block">
-            <h1>Scrim Slots · Admin</h1>
+            <h1 id="adminPageTitle">Scrim Slots · Admin</h1>
             <div class="subtitle" id="viewSubtitle">Overview of all reserved slots and clan usage.</div>
           </div>
-          <div style="display:flex; align-items:center; gap:10px;">
+          <div id="headerReservationBlock" style="display:flex; align-items:center; gap:10px;">
             <div class="badge-admin">
               <span>●</span> ADMIN VIEW ONLY
             </div>
@@ -1018,7 +1026,6 @@
                     </tbody>
                   </table>
                 </div>
-                </table>
               </div>
             </div>
           </div>
@@ -1074,10 +1081,199 @@
           </div>
         </div>
 
+        <!-- TOURNAMENT SLOTS VIEW (single list — no 6/8/10 PM schedule) -->
+        <div id="tournamentView" style="display:none;">
+          <div class="card">
+            <div class="card-header">
+              <div class="filters">
+                <div class="field">
+                  <label for="searchTournamentClan">Search:</label>
+                  <input id="searchTournamentClan" type="text" placeholder="Clan or tag...">
+                </div>
+                <button id="refreshTournamentBtn" class="btn btn-ghost">Refresh</button>
+                <button id="tournamentAdminReserveBtn" class="btn btn-reserve-admin">🛡️ Admin Reserve</button>
+                <button id="copyTournamentSlotsBtn" class="btn btn-ghost">Copy Slots</button>
+                <button id="announceTournamentBtn" class="btn btn-update" style="background:#22c55e; border-color:#16a34a;">📢
+                  Copy GC Announce</button>
+                <button id="resetTournamentSlotsBtn" class="btn btn-danger">Reset All Slots</button>
+              </div>
+              <div class="metrics">
+                <div class="metric-pill">
+                  Slots used: <span id="tournamentUsedCount">0</span>/<span id="tournamentMaxSlots">0</span>
+                </div>
+                <div class="metric-pill">
+                  Unique clans: <span id="tournamentUniqueClans">0</span>
+                </div>
+              </div>
+            </div>
+            <div class="chips" id="tournamentTopClans"></div>
+            <div class="footer" style="margin-bottom:10px;">
+              Tournament slots are separate from scrim schedules. What you list here is what appears on Tournament Scoreboard.
+            </div>
+            <div class="slot-grid" id="tournamentSlotGrid"></div>
+          </div>
+        </div>
+
+        <!-- TOURNAMENT SCOREBOARD VIEW (same layout as scrim scoreboard) -->
+        <div id="tournamentScoreboardView" style="display:none;">
+          <div class="card">
+            <div class="card-header">
+              <div style="font-size:14px; font-weight:600;">Tournament Scoreboard</div>
+              <div class="metrics" style="flex-wrap:wrap;">
+                <div class="metric-pill">
+                  Teams sync from Tournament Slot (filled slots only).
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <label for="tournamentScoreboardDatePicker" style="font-size: 11px; color: #9ca3af; white-space: nowrap;">Event
+                    Date:</label>
+                  <input type="date" id="tournamentScoreboardDatePicker"
+                    style="padding: 4px 6px; border-radius: 6px; border: 1px solid rgba(148,163,184,0.5); background: rgba(15,23,42,0.9); color: #e5e7eb; font-size: 11px; width: 110px; outline: none;">
+                </div>
+                <button id="saveTournamentScoreboardBtn" class="btn btn-update"
+                  style="font-size:11px; padding:6px 10px; background: #10b981; color: #fff; border-color: #059669;">
+                  💾 Save Record
+                </button>
+                <button id="toggleTournamentFullscreenBtn" class="btn btn-update"
+                  style="font-size:11px; padding:6px 10px; background: #0284c7; border-color: #0369a1;">
+                  ⛶ Full Screen
+                </button>
+                <button id="resetTournamentScoreboardBtn" class="btn btn-danger" style="font-size:11px; padding:6px 10px;">
+                  Reset Scoreboard
+                </button>
+                <button id="copyTournamentTopTeamsBtn" class="btn btn-update" style="font-size:11px; padding:6px 10px;">
+                  Copy Top Teams
+                </button>
+                <button id="saveTournamentAsImageBtn" class="btn btn-update"
+                  style="font-size:11px; padding:6px 10px; background: #8b5cf6; border-color: #7c3aed;">
+                  Save as Image
+                </button>
+              </div>
+            </div>
+            <div style="font-size:13px; color:#9ca3af; padding:4px 2px 10px 2px; margin-bottom:6px;">
+              Team names are synced from Tournament Slot so you don't have to type them again. Fill in round points and totals as needed.
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 340px; gap: 15px; margin-top: 15px;"
+              id="tournamentScoreboardLayout">
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:480px;">
+                  <thead>
+                    <tr style="background:rgba(15,23,42,0.95);">
+                      <th rowspan="2"
+                        style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        Slot</th>
+                      <th rowspan="2"
+                        style="text-align:left; padding:6px 8px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        Team Name</th>
+                      <th colspan="2"
+                        style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        R1</th>
+                      <th colspan="2"
+                        style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        R2</th>
+                      <th colspan="2"
+                        style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        R3</th>
+                      <th rowspan="2" style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">TOTAL</th>
+                      <th rowspan="2" class="action-head"
+                        style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);"></th>
+                    </tr>
+                    <tr style="background:rgba(30,41,59,0.95);">
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9);">KILLS</th>
+                      <th
+                        style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        PP</th>
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9);">KILLS</th>
+                      <th
+                        style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        PP</th>
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9);">KILLS</th>
+                      <th
+                        style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        PP</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tournamentScoreboardBody"></tbody>
+                </table>
+              </div>
+              <div
+                style="background:rgba(15,23,42,0.6); padding: 12px; border-radius: 12px; border: 1px solid rgba(55,65,81,0.5);">
+                <div
+                  style="font-size:12px; font-weight:600; color:#bfdbfe; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                  TOP PLAYERS STATS
+                  <button id="saveTournamentPlayersBtn" class="btn btn-update" style="display:none;">Save Stats</button>
+                </div>
+                <div style="font-size:10px; color:#9ca3af; margin-bottom:10px;">Type player names & stats based on Top 3
+                  sorted teams.</div>
+                <div id="tournamentPlayerStatsContainer" style="overflow-x:auto;">
+                  <table style="width:100%; border-collapse:collapse; font-size:11px;">
+                    <thead>
+                      <tr style="background:rgba(30,41,59,0.95);">
+                        <th rowspan="2" style="text-align:left; padding:4px;">IN-GAME NAME</th>
+                        <th colspan="3" style="padding:4px;">KILLS</th>
+                        <th rowspan="2" style="padding:4px;">TOTAL</th>
+                      </tr>
+                      <tr style="background:rgba(15,23,42,0.95);">
+                        <th style="font-size:9px;">R1</th>
+                        <th style="font-size:9px;">R2</th>
+                        <th style="font-size:9px;">R3</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tournamentAdminPlayersBody">
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style="margin-top:20px;">
+                  <div id="tournamentAdminDateDisplay"
+                    style="font-family:'Teko', sans-serif; font-size:40px; font-weight:700; text-transform:uppercase; text-align:center; color:#e2e8f0; background:#475569; margin-bottom:10px; line-height:1; border:1px solid #1e293b;">
+                    DATE PENDING
+                  </div>
+                  <table style="width:100%; border-collapse:collapse; border:1px solid #0f172a;">
+                    <tbody style="font-size:11px; font-weight:700;">
+                      <tr>
+                        <td
+                          style="background:#4dd0e1; color:#020617; font-weight:900; width:25%; padding:4px; text-align:center;">
+                          TOP 1</td>
+                        <td id="tournamentAdminSumTop1"
+                          style="background:#334155; color:#f8fafc; padding:4px; text-align:center;">---</td>
+                        <td id="tournamentAdminPtsTop1"
+                          style="background:#475569; color:#f8fafc; width:20%; padding:4px; text-align:center;">-</td>
+                      </tr>
+                      <tr>
+                        <td style="background:#4dd0e1; color:#020617; font-weight:900; padding:4px; text-align:center;">
+                          TOP 2</td>
+                        <td id="tournamentAdminSumTop2"
+                          style="background:#334155; color:#f8fafc; padding:4px; text-align:center;">---</td>
+                        <td id="tournamentAdminPtsTop2"
+                          style="background:#475569; color:#f8fafc; padding:4px; text-align:center;">-</td>
+                      </tr>
+                      <tr>
+                        <td style="background:#4dd0e1; color:#020617; font-weight:900; padding:4px; text-align:center;">
+                          TOP 3</td>
+                        <td id="tournamentAdminSumTop3"
+                          style="background:#334155; color:#f8fafc; padding:4px; text-align:center;">---</td>
+                        <td id="tournamentAdminPtsTop3"
+                          style="background:#475569; color:#f8fafc; padding:4px; text-align:center;">-</td>
+                      </tr>
+                      <tr>
+                        <td style="background:#4dd0e1; color:#020617; font-weight:900; padding:4px; text-align:center;">
+                          MVP</td>
+                        <td id="tournamentAdminSumMVP" style="background:#334155; color:#f8fafc; padding:4px; text-align:center;">
+                          PENDING TO UPDATE</td>
+                        <td id="tournamentAdminPtsMVP" style="background:#475569; color:#f8fafc; padding:4px; text-align:center;">
+                          0 KILLS</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
-  </div>
-  </div>
   </div>
 
   <!-- Schedule Popup -->
@@ -1182,9 +1378,15 @@
     const navScrim = document.getElementById('navScrim');
     const navScoreboard = document.getElementById('navScoreboard');
     const navBanned = document.getElementById('navBanned');
+    const navTournamentSlot = document.getElementById('navTournamentSlot');
+    const navTournamentScoreboard = document.getElementById('navTournamentScoreboard');
     const scrimView = document.getElementById('scrimView');
     const scoreboardView = document.getElementById('scoreboardView');
     const bannedView = document.getElementById('bannedView');
+    const tournamentView = document.getElementById('tournamentView');
+    const tournamentScoreboardView = document.getElementById('tournamentScoreboardView');
+    const adminPageTitle = document.getElementById('adminPageTitle');
+    const headerReservationBlock = document.getElementById('headerReservationBlock');
     const saveBannedBtn = document.getElementById('saveBannedBtn');
     const bannedNoShow = document.getElementById('bannedNoShow');
     const bannedLateCancel = document.getElementById('bannedLateCancel');
@@ -1233,6 +1435,15 @@
     let adminPopupResolver = null;
     let currentSched = '8pm'; // DEFAULT VIEW
 
+    const TOURNAMENT_SLOTS_CONFIG_KEY = 'tournament_admin_slots';
+    const TOURNAMENT_SCORES_CONFIG_KEY = 'tournament_scoreboard_json';
+    const TOURNAMENT_DATE_CONFIG_KEY = 'tournament_scoreboard_date';
+    const TOURNAMENT_PLAYERS_CONFIG_KEY = 'tournament_players_data';
+    let latestTournamentSlots = [];
+    let latestTournamentScores = [];
+    let latestTournamentPlayersData = '[]';
+    let adminReserveTarget = 'scrim';
+
     function bannedTeamsConfigKey(sched = currentSched) {
       const s = (sched || '').toString().trim().toLowerCase();
       return `banned_teams_list_${s}`;
@@ -1248,6 +1459,7 @@
       if (!headerBlock) return;
 
       const switcherDiv = document.createElement('div');
+      switcherDiv.id = 'schedSwitcherWrap';
       switcherDiv.style.margin = '10px 0 0 0';
       switcherDiv.style.display = 'flex';
       switcherDiv.style.gap = '8px';
@@ -1271,7 +1483,7 @@
         btn6.className = currentSched === '6pm' ? 'btn btn-update' : 'btn btn-ghost';
         btn8.className = currentSched === '8pm' ? 'btn btn-update' : 'btn btn-ghost';
         btn10.className = currentSched === '10pm' ? 'btn btn-update' : 'btn btn-ghost';
-        if (typeof viewSubtitle !== 'undefined') {
+        if (typeof viewSubtitle !== 'undefined' && scrimView && scrimView.style.display !== 'none') {
           viewSubtitle.textContent = `Managing ${currentSched.toUpperCase()} Scrim data.`;
         }
       };
@@ -1283,6 +1495,13 @@
         checkGlobalStatus();
         if (bannedView && bannedView.style.display !== 'none') {
           await loadBannedList();
+        }
+        if (scrimView && scrimView.style.display !== 'none') {
+          viewSubtitle.textContent = `Managing ${currentSched.toUpperCase()} Scrim data.`;
+        } else if (bannedView && bannedView.style.display !== 'none') {
+          viewSubtitle.textContent = `Managing ${currentSched.toUpperCase()} Banned & Warning Teams.`;
+        } else if (scoreboardView && scoreboardView.style.display !== 'none') {
+          viewSubtitle.textContent = 'Manage points and standings for the current event.';
         }
       };
       btn6.onclick = () => { onSchedChange('6pm'); };
@@ -1533,18 +1752,594 @@
       await updateSchedConfig('', '');
     });
 
+    async function persistTournamentSlots() {
+      const payload = JSON.stringify(latestTournamentSlots);
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/config`, {
+        method: 'POST',
+        headers: { ...supabaseHeaders(), 'Prefer': 'resolution=merge-duplicates, return=minimal' },
+        body: JSON.stringify({ key: TOURNAMENT_SLOTS_CONFIG_KEY, value: payload }),
+      });
+      if (!res.ok) throw new Error('save slots');
+    }
+
+    async function persistTournamentScores() {
+      const payload = JSON.stringify(latestTournamentScores);
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/config`, {
+        method: 'POST',
+        headers: { ...supabaseHeaders(), 'Prefer': 'resolution=merge-duplicates, return=minimal' },
+        body: JSON.stringify({ key: TOURNAMENT_SCORES_CONFIG_KEY, value: payload }),
+      });
+      if (!res.ok) throw new Error('save scores');
+    }
+
+    async function persistTournamentPlayers(jsonStr) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/config`, {
+        method: 'POST',
+        headers: { ...supabaseHeaders(), 'Prefer': 'resolution=merge-duplicates, return=minimal' },
+        body: JSON.stringify({ key: TOURNAMENT_PLAYERS_CONFIG_KEY, value: jsonStr }),
+      });
+      if (!res.ok) throw new Error('save tournament players');
+    }
+
+    function ensureTournamentSlotsShape(raw) {
+      const bySlot = {};
+      if (Array.isArray(raw)) {
+        raw.forEach(x => {
+          const sn = parseInt(x.slot, 10);
+          if (sn >= 1 && sn <= MAX_SLOTS) {
+            bySlot[sn] = {
+              slot: sn,
+              clan: (x.clan || '').toString(),
+              logo: (x.logo || x.clan_logo || '').toString(),
+            };
+          }
+        });
+      }
+      const out = [];
+      for (let i = 1; i <= MAX_SLOTS; i++) {
+        out.push(bySlot[i] || { slot: i, clan: '', logo: '' });
+      }
+      return out;
+    }
+
+    async function loadTournamentData() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=in.(${TOURNAMENT_SLOTS_CONFIG_KEY},${TOURNAMENT_SCORES_CONFIG_KEY},${TOURNAMENT_DATE_CONFIG_KEY},${TOURNAMENT_PLAYERS_CONFIG_KEY})&select=key,value`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        });
+        const rows = await res.json();
+        const list = Array.isArray(rows) ? rows : [];
+        let slotsRaw = [];
+        let scoresRaw = [];
+        let dateVal = '';
+        let playersVal = '';
+        list.forEach(r => {
+          if (r.key === TOURNAMENT_SLOTS_CONFIG_KEY && r.value) {
+            try { slotsRaw = JSON.parse(r.value); } catch (e) { slotsRaw = []; }
+          }
+          if (r.key === TOURNAMENT_SCORES_CONFIG_KEY && r.value) {
+            try { scoresRaw = JSON.parse(r.value); } catch (e) { scoresRaw = []; }
+          }
+          if (r.key === TOURNAMENT_DATE_CONFIG_KEY) dateVal = r.value || '';
+          if (r.key === TOURNAMENT_PLAYERS_CONFIG_KEY && r.value) playersVal = r.value;
+        });
+        latestTournamentSlots = ensureTournamentSlotsShape(slotsRaw);
+        latestTournamentScores = Array.isArray(scoresRaw) ? scoresRaw : [];
+        if (playersVal) latestTournamentPlayersData = playersVal;
+        else latestTournamentPlayersData = '[]';
+        const tdp = document.getElementById('tournamentScoreboardDatePicker');
+        if (tdp) {
+          if (dateVal) tdp.value = dateVal;
+          else if (!tdp.value) tdp.value = new Date().toISOString().slice(0, 10);
+        }
+      } catch (e) {
+        console.error(e);
+        latestTournamentSlots = ensureTournamentSlotsShape([]);
+        latestTournamentScores = [];
+        latestTournamentPlayersData = '[]';
+        showAdminToast('Failed to load tournament data.', 'error');
+      }
+    }
+
+    function renderTournamentScoreboardTable() {
+      const tbody = document.getElementById('tournamentScoreboardBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const filledSlots = latestTournamentSlots.filter(s => (s.clan || '').trim());
+      const combinedResults = filledSlots.map(s => {
+        const normName = normalize(s.clan);
+        const existingScore = latestTournamentScores.find(d => normalize(d.team) === normName) || {};
+        return {
+          slot: s.slot,
+          clan: s.clan,
+          score: existingScore,
+          isCurrent: true,
+        };
+      });
+
+      combinedResults.forEach(item => {
+        const s = item;
+        const tr = document.createElement('tr');
+        tr.style.background = 'rgba(15,23,42,0.85)';
+        tr.style.cursor = 'pointer';
+        tr.onclick = (e) => {
+          if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+            const firstInp = tr.querySelector('input');
+            if (firstInp) firstInp.focus();
+          }
+        };
+
+        const slotTd = document.createElement('td');
+        slotTd.textContent = s.slot;
+        slotTd.style.padding = '5px 8px';
+        slotTd.style.textAlign = 'center';
+        slotTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+        slotTd.style.color = '#fff';
+        tr.appendChild(slotTd);
+
+        const nameTd = document.createElement('td');
+        nameTd.textContent = s.clan;
+        nameTd.style.padding = '5px 8px';
+        nameTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+        nameTd.style.fontWeight = '600';
+        nameTd.style.color = '#fff';
+        tr.appendChild(nameTd);
+
+        const scoreInputs = [];
+        const existingScore = s.score;
+
+        function addCell(val = '') {
+          const td = document.createElement('td');
+          td.style.padding = '4px 4px';
+          td.style.textAlign = 'center';
+          td.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = val;
+          input.style.width = '60px';
+          input.style.padding = '4px 4px';
+          input.style.borderRadius = '20px';
+          input.style.border = '1px solid rgba(255,255,255,0.2)';
+          input.style.background = 'rgba(15,23,42,0.95)';
+          input.style.color = '#e5e7eb';
+          input.style.fontSize = '10px';
+          input.style.textAlign = 'center';
+          input.style.outline = 'none';
+          input.onfocus = () => {
+            input.style.borderColor = '#3b82f6';
+            input.style.background = 'rgba(30, 58, 138, 0.4)';
+            tr.classList.add('highlight-row');
+          };
+          input.onblur = () => {
+            input.style.borderColor = 'rgba(255,255,255,0.2)';
+            input.style.background = 'rgba(15,23,42,0.95)';
+            tr.classList.remove('highlight-row');
+          };
+          td.appendChild(input);
+          tr.appendChild(td);
+          scoreInputs.push(input);
+        }
+
+        addCell(existingScore?.r1 || '');
+        addCell(existingScore?.pp1 || '');
+        addCell(existingScore?.r2 || '');
+        addCell(existingScore?.pp2 || '');
+        addCell(existingScore?.r3 || '');
+        addCell(existingScore?.pp3 || '');
+
+        const totalTd = document.createElement('td');
+        totalTd.style.padding = '4px 4px';
+        totalTd.style.textAlign = 'center';
+        totalTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+        const totalInput = document.createElement('input');
+        totalInput.type = 'text';
+        totalInput.value = existingScore?.total || '';
+        totalInput.style.width = '60px';
+        totalInput.style.padding = '4px 4px';
+        totalInput.style.borderRadius = '20px';
+        totalInput.style.border = '1px solid rgba(250,204,21,0.4)';
+        totalInput.style.background = 'rgba(250,204,21,0.05)';
+        totalInput.style.color = '#facc15';
+        totalInput.style.fontWeight = '700';
+        totalInput.style.fontSize = '11px';
+        totalInput.style.textAlign = 'center';
+        totalInput.style.outline = 'none';
+        totalInput.onfocus = () => {
+          totalInput.style.borderColor = '#facc15';
+          totalInput.style.background = 'rgba(133, 77, 14, 0.2)';
+          tr.classList.add('highlight-row');
+        };
+        totalInput.onblur = () => {
+          totalInput.style.borderColor = 'rgba(250,204,21,0.4)';
+          totalInput.style.background = 'rgba(250,204,21,0.05)';
+          tr.classList.remove('highlight-row');
+        };
+        totalTd.appendChild(totalInput);
+        tr.appendChild(totalTd);
+        scoreInputs.push(totalInput);
+
+        const actionTd = document.createElement('td');
+        actionTd.style.padding = '4px 4px';
+        actionTd.style.textAlign = 'center';
+        actionTd.style.borderBottom = '1px solid rgba(31,41,55,0.9)';
+        tr.appendChild(actionTd);
+
+        tbody.appendChild(tr);
+
+        const updateRowTotal = () => {
+          let sum = 0;
+          scoreInputs.forEach((inp, idx) => {
+            if (idx === 6) return;
+            let v = inp.value.trim().toUpperCase();
+            if (v === 'NO SHOW' || v === 'VOID') v = '0';
+            const n = parseInt(v, 10);
+            if (!isNaN(n)) sum += n;
+          });
+          totalInput.value = sum;
+        };
+        scoreInputs.forEach((inp, idx) => {
+          if (idx < 6) inp.addEventListener('input', updateRowTotal);
+        });
+      });
+
+      const tournamentAdminPlayersBody = document.getElementById('tournamentAdminPlayersBody');
+      if (tournamentAdminPlayersBody) {
+        tournamentAdminPlayersBody.innerHTML = '';
+        const top3 = combinedResults.slice().sort((a, b) => {
+          const vB = parseInt(b.score?.total || 0, 10) || 0;
+          const vA = parseInt(a.score?.total || 0, 10) || 0;
+          if (vB !== vA) return vB - vA;
+          const kA = (parseInt(a.score?.r1, 10) || 0) + (parseInt(a.score?.r2, 10) || 0) + (parseInt(a.score?.r3, 10) || 0);
+          const kB = (parseInt(b.score?.r1, 10) || 0) + (parseInt(b.score?.r2, 10) || 0) + (parseInt(b.score?.r3, 10) || 0);
+          return kB - kA;
+        }).slice(0, 3);
+
+        let savedPlayers = [];
+        try { savedPlayers = JSON.parse(latestTournamentPlayersData); } catch (e) { }
+
+        top3.forEach((team, idx) => {
+          const tName = team.clan || 'TBD';
+          let tData = savedPlayers.find(x => normalize(x.team) === normalize(tName));
+          if (!tData) tData = { team: tName, players: [] };
+
+          tournamentAdminPlayersBody.innerHTML += `<tr><td colspan="5" style="background:rgba(15,23,42,0.95); font-weight:bold; color:#4dd0e1; text-align:center; padding:4px; letter-spacing: 1px;">TOP ${idx + 1} - ${tName}</td></tr>`;
+
+          for (let p = 0; p < 4; p++) {
+            const player = tData.players[p] || { name: '', r1: '', r2: '', r3: '' };
+            const inputStyle = "width:100%; border:1px solid rgba(255,255,255,0.2); background:rgba(15,23,42,0.6); color:#fff; font-size:10px; padding:3px; text-align:center; border-radius:4px;";
+            const nameStyle = "width:100%; border:1px solid rgba(255,255,255,0.2); background:rgba(15,23,42,0.6); color:#fff; font-size:10px; padding:3px; border-radius:4px;";
+
+            let pR1 = parseInt(player.r1, 10); if (isNaN(pR1)) pR1 = 0;
+            let pR2 = parseInt(player.r2, 10); if (isNaN(pR2)) pR2 = 0;
+            let pR3 = parseInt(player.r3, 10); if (isNaN(pR3)) pR3 = 0;
+            let tot = pR1 + pR2 + pR3;
+            let d1 = player.r1 === '' ? '-' : pR1;
+            let d2 = player.r2 === '' ? '-' : pR2;
+            let d3 = player.r3 === '' ? '-' : pR3;
+            let displayTot = (d1 === '-' && d2 === '-' && d3 === '-') ? '-' : tot;
+
+            const prow = document.createElement('tr');
+            prow.innerHTML = `
+                  <td style="padding:3px;"><input type="text" class="tournament-player-input" style="${nameStyle}" data-team="${tName}" data-idx="${p}" data-field="name" value="${player.name}" placeholder="Player ${p + 1}"></td>
+                  <td style="padding:3px;"><input type="text" class="tournament-player-input tournament-p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r1" value="${player.r1}"></td>
+                  <td style="padding:3px;"><input type="text" class="tournament-player-input tournament-p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r2" value="${player.r2}"></td>
+                  <td style="padding:3px;"><input type="text" class="tournament-player-input tournament-p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r3" value="${player.r3}"></td>
+                  <td style="padding:3px; text-align:center; font-weight:bold;" class="tournament-p-total">${displayTot}</td>
+                `;
+            tournamentAdminPlayersBody.appendChild(prow);
+          }
+        });
+
+        const recalcTournamentStats = () => {
+          let maxKills = 0;
+          let maxSingleRound = 0;
+          let maxName = 'PENDING TO UPDATE';
+          const top1TeamName = top3[0] ? top3[0].clan : null;
+
+          tournamentAdminPlayersBody.querySelectorAll('tr').forEach(row => {
+            const nameInp = row.querySelector('input[data-field="name"]');
+            if (!nameInp) return;
+            const pTeam = nameInp.getAttribute('data-team');
+            const kills = row.querySelectorAll('.tournament-p-kill');
+            let sum = 0;
+            let singleMax = 0;
+            let hasAny = false;
+            kills.forEach(k => {
+              if (k.value.trim() !== '') {
+                hasAny = true;
+                let v = parseInt(k.value.trim(), 10) || 0;
+                sum += v;
+                if (v > singleMax) singleMax = v;
+              }
+            });
+            const totTd = row.querySelector('.tournament-p-total');
+            if (totTd) totTd.textContent = hasAny ? sum : '-';
+
+            const pName = nameInp.value.trim();
+            if (pTeam === top1TeamName && hasAny && pName) {
+              if (sum > maxKills) {
+                maxKills = sum;
+                maxSingleRound = singleMax;
+                maxName = pName;
+              } else if (sum === maxKills && singleMax > maxSingleRound && sum > 0) {
+                maxSingleRound = singleMax;
+                maxName = pName;
+              }
+            }
+          });
+          const elMvp = document.getElementById('tournamentAdminSumMVP');
+          const elMvpPts = document.getElementById('tournamentAdminPtsMVP');
+          if (elMvp && elMvpPts) {
+            elMvp.textContent = maxName;
+            elMvpPts.textContent = maxKills > 0 ? (maxKills + ' KILLS') : '- KILLS';
+          }
+        };
+
+        tournamentAdminPlayersBody.querySelectorAll('.tournament-player-input').forEach(inp => {
+          inp.addEventListener('blur', recalcTournamentStats);
+        });
+
+        ['tournamentAdminSumTop1', 'tournamentAdminSumTop2', 'tournamentAdminSumTop3'].forEach((id, idx) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = top3[idx] ? top3[idx].clan : '---';
+        });
+        ['tournamentAdminPtsTop1', 'tournamentAdminPtsTop2', 'tournamentAdminPtsTop3'].forEach((id, idx) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = top3[idx] ? (top3[idx].score.total || '-') : '-';
+        });
+
+        const tdp = document.getElementById('tournamentScoreboardDatePicker');
+        const tDateDisplay = document.getElementById('tournamentAdminDateDisplay');
+        const dpValue = tdp && tdp.value;
+        if (tDateDisplay && dpValue) {
+          const d = new Date(dpValue);
+          const options = { month: 'long', day: 'numeric', year: 'numeric' };
+          tDateDisplay.textContent = d.toLocaleDateString('en-US', options).toUpperCase();
+        }
+
+        recalcTournamentStats();
+      }
+    }
+
+    function renderTournamentSlots() {
+      const grid = document.getElementById('tournamentSlotGrid');
+      const searchInp = document.getElementById('searchTournamentClan');
+      const usedEl = document.getElementById('tournamentUsedCount');
+      const maxEl = document.getElementById('tournamentMaxSlots');
+      const uniqEl = document.getElementById('tournamentUniqueClans');
+      const topEl = document.getElementById('tournamentTopClans');
+      if (!grid) return;
+
+      const filter = normalize(searchInp ? searchInp.value : '');
+      const withMeta = latestTournamentSlots.map(s => {
+        const cleanName = (s.clan || '').trim();
+        const isFilled = !!cleanName;
+        const tag = cleanName ? cleanName.split(/\s+/)[0] : '';
+        return { ...s, clan: cleanName, isFilled, tag };
+      });
+
+      let filtered = withMeta;
+      if (filter) {
+        filtered = withMeta.filter(s => {
+          const name = normalize(s.clan);
+          const tag = normalize(s.tag);
+          return name.includes(filter) || tag.includes(filter) || String(s.slot).includes(filter);
+        });
+      }
+
+      const filled = withMeta.filter(s => s.isFilled);
+      if (usedEl) usedEl.textContent = String(filled.length);
+      if (maxEl) maxEl.textContent = String(MAX_SLOTS);
+
+      const clanCounts = {};
+      filled.forEach(s => {
+        const key = s.tag || s.clan || 'Unknown';
+        clanCounts[key.toUpperCase()] = (clanCounts[key.toUpperCase()] || 0) + 1;
+      });
+      if (uniqEl) uniqEl.textContent = String(Object.keys(clanCounts).length);
+
+      if (topEl) {
+        topEl.innerHTML = '';
+        Object.entries(clanCounts).sort((a, b) => b[1] - a[1]).slice(0, 6).forEach(([name, count]) => {
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.textContent = `${name} · ${count} team${count > 1 ? 's' : ''}`;
+          topEl.appendChild(chip);
+        });
+      }
+
+      grid.innerHTML = '';
+      filtered.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'slot-card ' + (s.isFilled ? '' : 'empty');
+
+        const topRow = document.createElement('div');
+        topRow.className = 'slot-top';
+        const num = document.createElement('div');
+        num.className = 'slot-number';
+        num.textContent = 'Slot ' + s.slot;
+        const status = document.createElement('div');
+        status.className = 'slot-status ' + (s.isFilled ? 'filled' : 'empty');
+        status.textContent = s.isFilled ? 'FILLED' : 'EMPTY';
+        topRow.appendChild(num);
+        topRow.appendChild(status);
+
+        const clanRow = document.createElement('div');
+        clanRow.style.display = 'flex';
+        clanRow.style.alignItems = 'center';
+        clanRow.style.marginTop = '6px';
+
+        if (s.isFilled && s.logo) {
+          const logoDiv = document.createElement('div');
+          logoDiv.className = 'slot-logo-admin';
+          logoDiv.innerHTML = `<img src="${s.logo}" alt="Logo">`;
+          clanRow.appendChild(logoDiv);
+        } else if (s.isFilled) {
+          const logoDiv = document.createElement('div');
+          logoDiv.className = 'slot-logo-admin';
+          logoDiv.style.fontSize = '14px';
+          logoDiv.textContent = '🛡️';
+          clanRow.appendChild(logoDiv);
+        }
+
+        const clan = document.createElement('div');
+        clan.className = 'slot-clan';
+        clan.textContent = s.isFilled ? s.clan : '—';
+        clanRow.appendChild(clan);
+
+        card.appendChild(topRow);
+        card.appendChild(clanRow);
+
+        if (s.isFilled) {
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'slot-actions';
+          actionsDiv.style.display = 'flex';
+          actionsDiv.style.gap = '6px';
+          actionsDiv.style.marginTop = '10px';
+
+          const updateBtn = document.createElement('button');
+          updateBtn.textContent = 'Update';
+          updateBtn.className = 'btn btn-primary';
+          updateBtn.style.flex = '1';
+          updateBtn.style.padding = '4px 8px';
+          updateBtn.style.fontSize = '11px';
+          updateBtn.onclick = async () => {
+            const { confirmed, value } = await openAdminPopup({
+              title: 'Update tournament slot',
+              message: `Updating slot ${s.slot} for "${s.clan}".`,
+              requireInput: true,
+              initialValue: s.clan,
+              placeholder: 'New clan name',
+              confirmText: 'Update',
+              cancelText: 'Cancel',
+            });
+            if (!confirmed) return;
+            const newClan = (value || '').trim();
+            if (!newClan) {
+              showAdminToast('Clan name cannot be empty.', 'error');
+              return;
+            }
+            const newClanUpper = newClan.toUpperCase();
+            const newTag = newClanUpper.split(/\s+/)[0];
+            const otherSlots = latestTournamentSlots.filter(row => row.slot !== s.slot);
+            const isDuplicate = otherSlots.some(row => (row.clan || '').trim().toUpperCase() === newClanUpper);
+            if (isDuplicate) {
+              showAdminToast(`Bawal duplicate! "${newClan}" is already in another slot.`, 'error');
+              return;
+            }
+            const groupCount = otherSlots.filter(row => {
+              const c = (row.clan || '').trim();
+              if (!c) return false;
+              return c.toUpperCase().split(/\s+/)[0] === newTag;
+            }).length;
+            if (groupCount >= 3) {
+              showAdminToast(`Limit reached! Max 3 slots for "${newTag}" group.`, 'error');
+              return;
+            }
+            const idx = latestTournamentSlots.findIndex(x => x.slot === s.slot);
+            if (idx !== -1) {
+              latestTournamentSlots[idx] = { ...latestTournamentSlots[idx], clan: newClan };
+            }
+            try {
+              await persistTournamentSlots();
+              showAdminToast(`Tournament slot ${s.slot} updated.`, 'success');
+              renderTournamentSlots();
+              if (tournamentScoreboardView && tournamentScoreboardView.style.display !== 'none') {
+                await loadTournamentData();
+                renderTournamentScoreboardTable();
+              }
+            } catch (e) {
+              showAdminToast('Failed to save tournament slot.', 'error');
+            }
+          };
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.textContent = 'Delete';
+          deleteBtn.className = 'btn btn-danger';
+          deleteBtn.style.flex = '1';
+          deleteBtn.style.padding = '4px 8px';
+          deleteBtn.style.fontSize = '11px';
+          deleteBtn.onclick = async () => {
+            const { confirmed } = await openAdminPopup({
+              title: 'Delete tournament slot',
+              message: `Clear slot ${s.slot} for "${s.clan}"?`,
+              requireInput: false,
+              confirmText: 'Delete',
+              cancelText: 'Cancel',
+            });
+            if (!confirmed) return;
+            const idx = latestTournamentSlots.findIndex(x => x.slot === s.slot);
+            if (idx !== -1) {
+              latestTournamentSlots[idx] = { slot: s.slot, clan: '', logo: '' };
+            }
+            try {
+              await persistTournamentSlots();
+              showAdminToast(`Tournament slot ${s.slot} cleared.`, 'success');
+              renderTournamentSlots();
+              if (tournamentScoreboardView && tournamentScoreboardView.style.display !== 'none') {
+                await loadTournamentData();
+                renderTournamentScoreboardTable();
+              }
+            } catch (e) {
+              showAdminToast('Failed to save.', 'error');
+            }
+          };
+
+          actionsDiv.appendChild(updateBtn);
+          actionsDiv.appendChild(deleteBtn);
+          card.appendChild(actionsDiv);
+        }
+
+        grid.appendChild(card);
+      });
+
+      if (tournamentScoreboardView && tournamentScoreboardView.style.display !== 'none') {
+        renderTournamentScoreboardTable();
+      }
+    }
+
     function setActiveView(view) {
       scrimView.style.display = view === 'scrim' ? 'block' : 'none';
       scoreboardView.style.display = view === 'scoreboard' ? 'block' : 'none';
       bannedView.style.display = view === 'banned' ? 'block' : 'none';
+      if (tournamentView) tournamentView.style.display = view === 'tournamentSlot' ? 'block' : 'none';
+      if (tournamentScoreboardView) tournamentScoreboardView.style.display = view === 'tournamentScoreboard' ? 'block' : 'none';
 
       navScrim.classList.toggle('active', view === 'scrim');
       navScoreboard.classList.toggle('active', view === 'scoreboard');
       if (navBanned) navBanned.classList.toggle('active', view === 'banned');
+      if (navTournamentSlot) navTournamentSlot.classList.toggle('active', view === 'tournamentSlot');
+      if (navTournamentScoreboard) navTournamentScoreboard.classList.toggle('active', view === 'tournamentScoreboard');
+
+      const schedSwitcherWrap = document.getElementById('schedSwitcherWrap');
+      const hideSched = view === 'tournamentSlot' || view === 'tournamentScoreboard';
+      if (schedSwitcherWrap) schedSwitcherWrap.style.display = hideSched ? 'none' : '';
+
+      if (headerReservationBlock) {
+        headerReservationBlock.style.display = view === 'scrim' ? 'flex' : 'none';
+      }
+
+      if (adminPageTitle) {
+        if (view === 'scrim') adminPageTitle.textContent = 'Scrim Slots · Admin';
+        else if (view === 'scoreboard') adminPageTitle.textContent = 'Scoreboard · Admin';
+        else if (view === 'banned') adminPageTitle.textContent = 'Banned Teams · Admin';
+        else if (view === 'tournamentSlot') adminPageTitle.textContent = 'Tournament Slot · Admin';
+        else if (view === 'tournamentScoreboard') adminPageTitle.textContent = 'Tournament Scoreboard · Admin';
+      }
 
       if (view === 'scrim') viewSubtitle.textContent = 'Overview of all reserved slots and clan usage.';
       else if (view === 'scoreboard') viewSubtitle.textContent = 'Manage points and standings for the current event.';
       else if (view === 'banned') viewSubtitle.textContent = `Managing ${currentSched.toUpperCase()} Banned & Warning Teams.`;
+      else if (view === 'tournamentSlot') viewSubtitle.textContent = 'Manage tournament slot registrations. No schedule needed.';
+      else if (view === 'tournamentScoreboard') viewSubtitle.textContent = 'Scores for teams registered in Tournament Slots.';
+
+      if (view === 'tournamentSlot' || view === 'tournamentScoreboard') {
+        loadTournamentData().then(() => {
+          renderTournamentSlots();
+          if (view === 'tournamentScoreboard') renderTournamentScoreboardTable();
+        });
+      }
     }
 
     function renderView() {
@@ -2231,6 +3026,7 @@
 
     // --- ADMIN RESERVE LOGIC ---
     adminReserveBtn.onclick = () => {
+      adminReserveTarget = 'scrim';
       adminReserveClanInput.value = '';
       currentAdminLogoBase64 = '';
       slotModalLogoPreview.src = '';
@@ -2280,7 +3076,52 @@
 
       adminReserveSubmit.disabled = true;
       try {
-        // Find first empty slot for current schedule
+        if (adminReserveTarget === 'tournament') {
+          await loadTournamentData();
+          const empty = latestTournamentSlots.find(s => !(s.clan || '').trim());
+          if (!empty) {
+            showAdminToast("All tournament slots are full!", "error");
+            adminReserveSubmit.disabled = false;
+            return;
+          }
+          const clanUpper = clan.toUpperCase();
+          const tag = clanUpper.split(/\s+/)[0];
+          const isDuplicate = latestTournamentSlots.some(s => (s.clan || '').trim().toUpperCase() === clanUpper);
+          if (isDuplicate) {
+            showAdminToast(`Bawal duplicate! "${clan}" is already registered.`, 'error');
+            adminReserveSubmit.disabled = false;
+            return;
+          }
+          const groupCount = latestTournamentSlots.filter(s => {
+            const c = (s.clan || '').trim();
+            if (!c) return false;
+            return c.toUpperCase().split(/\s+/)[0] === tag;
+          }).length;
+          if (groupCount >= 5) {
+            showAdminToast(`Limit reached! Max 5 slots for "${tag}" group.`, 'error');
+            adminReserveSubmit.disabled = false;
+            return;
+          }
+          const idx = latestTournamentSlots.findIndex(s => s.slot === empty.slot);
+          if (idx !== -1) {
+            latestTournamentSlots[idx] = {
+              slot: empty.slot,
+              clan,
+              logo: currentAdminLogoBase64 || '',
+            };
+          }
+          await persistTournamentSlots();
+          showAdminToast(`Tournament slot ${empty.slot} reserved for "${clan}"`, 'success');
+          adminReserveModal.style.display = 'none';
+          renderTournamentSlots();
+          if (tournamentScoreboardView && tournamentScoreboardView.style.display !== 'none') {
+            renderTournamentScoreboardTable();
+          }
+          adminReserveSubmit.disabled = false;
+          return;
+        }
+
+        // Scrim slots (per schedule)
         const empty = latestSlots.find(s => !s.isFilled);
         if (!empty) {
           showAdminToast("All slots are full!", "error");
@@ -2288,11 +3129,9 @@
           return;
         }
 
-        // --- ADMIN VALIDATION ---
         const clanUpper = clan.toUpperCase();
         const tag = clanUpper.split(/\s+/)[0];
 
-        // 1. Duplicate Check
         const isDuplicate = latestSlots.some(s => s.clan && s.clan.trim().toUpperCase() === clanUpper);
         if (isDuplicate) {
           showAdminToast(`Bawal duplicate! "${clan}" is already registered.`, 'error');
@@ -2300,7 +3139,6 @@
           return;
         }
 
-        // 2. Group Limit Check
         const groupCount = latestSlots.filter(s => {
           if (!s.clan) return false;
           const rTag = s.clan.trim().toUpperCase().split(/\s+/)[0];
@@ -2319,7 +3157,7 @@
           body: JSON.stringify({
             clan,
             clan_logo: currentAdminLogoBase64,
-            cancel_key: 'ADMIN' // Default PIN for admin reservations
+            cancel_key: 'ADMIN'
           }),
         });
 
@@ -2812,6 +3650,433 @@
         loadBannedList();
       });
     }
+    if (navTournamentSlot) {
+      navTournamentSlot.addEventListener('click', () => setActiveView('tournamentSlot'));
+    }
+    if (navTournamentScoreboard) {
+      navTournamentScoreboard.addEventListener('click', () => setActiveView('tournamentScoreboard'));
+    }
+
+    const refreshTournamentBtn = document.getElementById('refreshTournamentBtn');
+    const searchTournamentClan = document.getElementById('searchTournamentClan');
+    const tournamentAdminReserveBtn = document.getElementById('tournamentAdminReserveBtn');
+    const copyTournamentSlotsBtn = document.getElementById('copyTournamentSlotsBtn');
+    const resetTournamentSlotsBtn = document.getElementById('resetTournamentSlotsBtn');
+    const saveTournamentScoreboardBtn = document.getElementById('saveTournamentScoreboardBtn');
+    const resetTournamentScoreboardBtn = document.getElementById('resetTournamentScoreboardBtn');
+    const tournamentScoreboardDatePicker = document.getElementById('tournamentScoreboardDatePicker');
+
+    if (refreshTournamentBtn) {
+      refreshTournamentBtn.addEventListener('click', () => {
+        loadTournamentData().then(() => {
+          renderTournamentSlots();
+          if (tournamentScoreboardView && tournamentScoreboardView.style.display !== 'none') {
+            renderTournamentScoreboardTable();
+          }
+        });
+      });
+    }
+    if (searchTournamentClan) {
+      searchTournamentClan.addEventListener('input', () => renderTournamentSlots());
+    }
+    if (tournamentAdminReserveBtn) {
+      tournamentAdminReserveBtn.onclick = () => {
+        adminReserveTarget = 'tournament';
+        adminReserveClanInput.value = '';
+        currentAdminLogoBase64 = '';
+        slotModalLogoPreview.src = '';
+        slotModalLogoPreviewContainer.style.display = 'none';
+        adminReserveModal.style.display = 'flex';
+        adminReserveClanInput.focus();
+      };
+    }
+    if (copyTournamentSlotsBtn) {
+      copyTournamentSlotsBtn.addEventListener('click', async () => {
+        const d = new Date();
+        const options = { month: 'long', day: 'numeric', year: 'numeric' };
+        const formattedDate = d.toLocaleDateString('en-US', options).toUpperCase();
+        let text = `‼️ TOURNAMENT SLOTS ‼️\n\n`;
+        text += `📅 DATE: ${formattedDate}\n\n`;
+        text += `𝑺𝑳𝑶𝑻𝑺 𝑳𝑰𝑺𝑻 :\n`;
+        for (let i = 1; i <= MAX_SLOTS; i++) {
+          const row = latestTournamentSlots.find(x => x.slot === i);
+          const clanName = row && row.clan ? row.clan.trim() : '';
+          text += `${i}. ${clanName}\n`;
+        }
+        text += "\n\n𝙼𝙴𝙽𝚃𝙸𝙾𝙽 𝚃𝙷𝙴 𝙰𝙳𝙼𝙸𝙽𝚂 𝙸𝙵 𝚃𝙷𝙴𝚁𝙴 𝙸𝚂 𝙰 𝙲𝙷𝙰𝙽𝙶𝙸𝙽𝙶. \n𝙳𝙾 𝙽𝙾𝚃 𝙴𝙳𝙸𝚃!\n\n";
+        text += `𝚁𝚄𝙻𝙴𝚂! ⬇️\nhttps://www.facebook.com/share/p/1BZZxfAmD8/`;
+
+        try {
+          await navigator.clipboard.writeText(text);
+          showAdminToast('Tournament slots copied!', 'success');
+        } catch (err) {
+          showAdminToast('Copy failed.', 'error');
+        }
+      });
+    }
+
+    const announceTournamentBtn = document.getElementById('announceTournamentBtn');
+    if (announceTournamentBtn) {
+      announceTournamentBtn.addEventListener('click', async () => {
+        const used = latestTournamentSlots.filter(s => (s.clan || '').trim()).length;
+        const remaining = MAX_SLOTS - used;
+        const siteLink = "https://markanthonymanuel45-coder.github.io/A51-ASTRAL/scrim_reservation.html"; // Reuse for now or update if tournament has own page
+
+        let text = `🔥 *A51 ASTRAL TOURNAMENT UPDATES* 🔥\n`;
+        text += `━━━━━━━━━━━━━━━━━━━━\n`;
+        text += `🏆 *EVENT:* TOURNAMENT\n`;
+        text += `👥 *SLOTS:* ${used}/${MAX_SLOTS} (Remaining: ${remaining})\n\n`;
+
+        if (remaining > 0) {
+          text += `👇 *REGISTER YOUR TEAM HERE:*\n`;
+          text += `${siteLink}\n`;
+        } else {
+          text += `🚫 *STATUS:* 𝑺𝑳𝑶𝑻𝑺 𝑨𝑹𝑬 𝑭𝑼𝑳𝑳! 🚫\n`;
+        }
+
+        text += `\n📜 *RULES:* \n`;
+        text += `https://www.facebook.com/share/p/1Erdn8UzLk/\n\n`;
+        text += `━━━━━━━━━━━━━━━━━━━━`;
+
+        try {
+          await navigator.clipboard.writeText(text);
+          showAdminToast("Tournament GC Announcement copied!", 'success');
+        } catch (err) {
+          showAdminToast("Failed to copy.", 'error');
+        }
+      });
+    }
+    if (resetTournamentSlotsBtn) {
+      resetTournamentSlotsBtn.addEventListener('click', async () => {
+        const { confirmed } = await openAdminPopup({
+          title: 'Reset tournament slots',
+          message: 'Clear all teams from tournament slots? (Tournament scoreboard rows will shrink to match.)',
+          requireInput: false,
+          confirmText: 'Reset',
+          cancelText: 'Cancel',
+        });
+        if (!confirmed) return;
+        try {
+          await loadTournamentData();
+          latestTournamentSlots = ensureTournamentSlotsShape([]);
+          await persistTournamentSlots();
+          showAdminToast('Tournament slots cleared.', 'success');
+          renderTournamentSlots();
+          if (tournamentScoreboardView && tournamentScoreboardView.style.display !== 'none') {
+            renderTournamentScoreboardTable();
+          }
+        } catch (e) {
+          showAdminToast('Reset failed.', 'error');
+        }
+      });
+    }
+    if (saveTournamentScoreboardBtn) {
+      saveTournamentScoreboardBtn.onclick = async () => {
+        const tbody = document.getElementById('tournamentScoreboardBody');
+        if (!tbody) return;
+        const rows = [];
+        tbody.querySelectorAll('tr').forEach(tr => {
+          const cells = tr.querySelectorAll('td');
+          if (cells.length < 9) return;
+          const team = cells[1].textContent;
+          const getVal = (idx) => {
+            const v = cells[idx].querySelector('input')?.value.trim();
+            return v === '' ? null : v;
+          };
+          rows.push({
+            team,
+            r1: getVal(2),
+            pp1: getVal(3),
+            r2: getVal(4),
+            pp2: getVal(5),
+            r3: getVal(6),
+            pp3: getVal(7),
+            total: getVal(8),
+          });
+        });
+        if (!rows.length) return showAdminToast('Nothing to save.', 'info');
+        try {
+          latestTournamentScores = rows;
+          await persistTournamentScores();
+          const inputs = document.querySelectorAll('#tournamentAdminPlayersBody .tournament-player-input');
+          const dataMap = {};
+          inputs.forEach(inp => {
+            const team = inp.getAttribute('data-team');
+            const idx = parseInt(inp.getAttribute('data-idx'), 10);
+            const field = inp.getAttribute('data-field');
+            if (!team) return;
+            if (!dataMap[team]) dataMap[team] = [];
+            if (!dataMap[team][idx]) dataMap[team][idx] = { name: '', r1: '', r2: '', r3: '' };
+            dataMap[team][idx][field] = inp.value;
+          });
+          const finalPlayers = Object.keys(dataMap).map(team => ({ team, players: dataMap[team] }));
+          const playersJson = JSON.stringify(finalPlayers);
+          await persistTournamentPlayers(playersJson);
+          latestTournamentPlayersData = playersJson;
+
+          const selectedDate = (tournamentScoreboardDatePicker && tournamentScoreboardDatePicker.value)
+            ? tournamentScoreboardDatePicker.value
+            : new Date().toISOString().slice(0, 10);
+          await fetch(`${SUPABASE_URL}/rest/v1/config`, {
+            method: 'POST',
+            headers: { ...supabaseHeaders(), 'Prefer': 'resolution=merge-duplicates, return=minimal' },
+            body: JSON.stringify({ key: TOURNAMENT_DATE_CONFIG_KEY, value: selectedDate }),
+          });
+          showAdminToast('Tournament scoreboard saved.', 'success');
+        } catch (e) {
+          showAdminToast('Save failed.', 'error');
+        }
+      };
+    }
+    if (resetTournamentScoreboardBtn) {
+      resetTournamentScoreboardBtn.onclick = async () => {
+        const { confirmed } = await openAdminPopup({
+          title: 'Reset tournament scoreboard',
+          message: 'Clear all saved tournament scores? (Slots / team list will not be deleted.)',
+          requireInput: false,
+          confirmText: 'Reset',
+          cancelText: 'Cancel',
+        });
+        if (!confirmed) return;
+        try {
+          latestTournamentScores = [];
+          latestTournamentPlayersData = '[]';
+          await persistTournamentScores();
+          await persistTournamentPlayers('[]');
+          renderTournamentScoreboardTable();
+          showAdminToast('Tournament scores cleared.', 'success');
+        } catch (e) {
+          showAdminToast('Reset failed.', 'error');
+        }
+      };
+    }
+
+    const toggleTournamentFullscreenBtn = document.getElementById('toggleTournamentFullscreenBtn');
+    if (toggleTournamentFullscreenBtn) {
+      toggleTournamentFullscreenBtn.onclick = () => {
+        const card = document.querySelector('#tournamentScoreboardView .card');
+        if (card.classList.contains('fullscreen-mode')) {
+          card.classList.remove('fullscreen-mode');
+          toggleTournamentFullscreenBtn.innerHTML = '⛶ Full Screen';
+        } else {
+          card.classList.add('fullscreen-mode');
+          toggleTournamentFullscreenBtn.innerHTML = '✖ Exit Full Screen';
+        }
+      };
+    }
+
+    const copyTournamentTopTeamsBtn = document.getElementById('copyTournamentTopTeamsBtn');
+    if (copyTournamentTopTeamsBtn) {
+      copyTournamentTopTeamsBtn.onclick = async () => {
+        const tbody = document.getElementById('tournamentScoreboardBody');
+        if (!tbody) return;
+        const rows = [];
+        tbody.querySelectorAll('tr').forEach(tr => {
+          const cells = tr.querySelectorAll('td');
+          if (cells.length < 9) return;
+          const team = cells[1].textContent;
+          const r1 = parseInt(cells[2].querySelector('input')?.value || '0', 10);
+          const r2 = parseInt(cells[4].querySelector('input')?.value || '0', 10);
+          const r3 = parseInt(cells[6].querySelector('input')?.value || '0', 10);
+          const total = parseInt(cells[8].querySelector('input')?.value || '0', 10);
+          if (team) {
+            const maxKills = Math.max(isNaN(r1) ? 0 : r1, isNaN(r2) ? 0 : r2, isNaN(r3) ? 0 : r3);
+            rows.push({ team, total, maxKills });
+          }
+        });
+
+        if (rows.length === 0) {
+          showAdminToast("No tournament data found.", "error");
+          return;
+        }
+
+        rows.sort((a, b) => {
+          if (b.total !== a.total) return b.total - a.total;
+          return b.maxKills - a.maxKills;
+        });
+
+        const top1 = rows[0]?.team || "";
+        const top2 = rows[1]?.team || "";
+        const top3 = rows[2]?.team || "";
+
+        const rawDate = (tournamentScoreboardDatePicker && tournamentScoreboardDatePicker.value) || new Date().toISOString().slice(0, 10);
+        const d = new Date(rawDate);
+        const options = { month: 'long', day: 'numeric', year: 'numeric' };
+        const formattedDate = d.toLocaleDateString('en-US', options).toUpperCase();
+
+        const mvpName = document.getElementById('tournamentAdminSumMVP')?.textContent || 'PENDING';
+        const mvpStats = document.getElementById('tournamentAdminPtsMVP')?.textContent || '';
+
+        let text = `🏆 𝐓𝐎𝐔𝐑𝐍𝐀𝐌𝐄𝐍𝐓 𝐂𝐎𝐍𝐆𝐑𝐀𝐓𝐔𝐋𝐀𝐓𝐈𝐎𝐍𝐒 🏆\n\n`;
+        text += `📅 𝐃𝐀𝐓𝐄: ${formattedDate}\n`;
+        text += `🥇 𝐓𝐎𝐏 𝟏: ${top1}\n`;
+        text += `🥈 𝐓𝐎𝐏 𝟐: ${top2}\n`;
+        text += `🥉 𝐓𝐎𝐏 𝟑: ${top3}\n\n`;
+        text += `🎖️ 𝐌𝐕𝐏: ${mvpName} (${mvpStats})\n\n`;
+        text += `𝙋𝙇𝙀𝘼𝙎𝙀 𝙎𝙀𝙉𝘿 𝙔𝙊𝙐𝙍 𝙇𝙊𝐆𝙊𝙎 𝘼𝙉𝘿 𝙈𝙑𝙋 𝙋𝙄𝘾𝙎 𝙃𝙀𝙍𝙀. 👽`;
+
+        try {
+          await navigator.clipboard.writeText(text);
+          showAdminToast("Tournament Top Teams copied!", "success");
+        } catch (err) {
+          showAdminToast("Failed to copy.", "error");
+        }
+      };
+    }
+
+    const saveTournamentAsImageBtn = document.getElementById('saveTournamentAsImageBtn');
+    if (saveTournamentAsImageBtn) {
+      saveTournamentAsImageBtn.onclick = async () => {
+        const tbody = document.getElementById('tournamentScoreboardBody');
+        if (!tbody) return;
+        const rows = [];
+        tbody.querySelectorAll('tr').forEach(tr => {
+          const cells = tr.querySelectorAll('td');
+          if (cells.length < 9) return;
+          const team = cells[1].textContent;
+          const getVal = (idx) => cells[idx].querySelector('input')?.value.trim() || '';
+          if (team) {
+            rows.push({
+              team,
+              r1: getVal(2), pp1: getVal(3),
+              r2: getVal(4), pp2: getVal(5),
+              r3: getVal(6), pp3: getVal(7),
+              total: getVal(8)
+            });
+          }
+        });
+
+        if (rows.length === 0) return showAdminToast("No data to save.", "error");
+
+        const safeNum = (v) => parseInt(v, 10) || 0;
+        rows.sort((a, b) => safeNum(b.total) - safeNum(a.total));
+
+        const playerRowsHtml = [];
+        const tAdminPlayersBody = document.getElementById('tournamentAdminPlayersBody');
+        if (tAdminPlayersBody) {
+          tAdminPlayersBody.querySelectorAll('tr').forEach(tr => {
+            const isHeader = tr.cells.length === 1 && tr.cells[0].colSpan > 1;
+            if (isHeader) {
+              playerRowsHtml.push(`<tr><td colspan="5" style="background:rgba(15,23,42,0.95); color:#4dd0e1; text-align:center; padding:6px; font-weight:bold; letter-spacing:1px; font-size:12px;">${tr.textContent}</td></tr>`);
+            } else {
+              const name = tr.querySelector('input[data-field="name"]')?.value || '---';
+              const r1 = tr.querySelector('input[data-field="r1"]')?.value || '-';
+              const r2 = tr.querySelector('input[data-field="r2"]')?.value || '-';
+              const r3 = tr.querySelector('input[data-field="r3"]')?.value || '-';
+              const tot = tr.querySelector('.tournament-p-total')?.textContent || '-';
+              playerRowsHtml.push(`
+                  <tr style="background: rgba(30,41,59,0.5);">
+                    <td style="text-align:left; padding:6px 10px; color:#cbd5e1; font-size:12px; border-bottom:1px solid rgba(51,65,85,0.5);">${name}</td>
+                    <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r1}</td>
+                    <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r2}</td>
+                    <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r3}</td>
+                    <td style="text-align:center; color:#facc15; font-weight:bold; border-bottom:1px solid rgba(51,65,85,0.5);">${tot}</td>
+                  </tr>
+                `);
+            }
+          });
+        }
+
+        const dateText = document.getElementById('tournamentAdminDateDisplay')?.textContent || '';
+        const top1 = document.getElementById('tournamentAdminSumTop1')?.textContent || '';
+        const pts1 = document.getElementById('tournamentAdminPtsTop1')?.textContent || '';
+        const top2 = document.getElementById('tournamentAdminSumTop2')?.textContent || '';
+        const pts2 = document.getElementById('tournamentAdminPtsTop2')?.textContent || '';
+        const top3 = document.getElementById('tournamentAdminSumTop3')?.textContent || '';
+        const pts3 = document.getElementById('tournamentAdminPtsTop3')?.textContent || '';
+        const mvpName = document.getElementById('tournamentAdminSumMVP')?.textContent || '';
+        const mvpStats = document.getElementById('tournamentAdminPtsMVP')?.textContent || '';
+
+        const container = document.createElement('div');
+        container.style.position = 'absolute'; container.style.left = '0'; container.style.top = '0'; container.style.zIndex = '-9999';
+        container.style.width = '1080px'; container.style.padding = '35px'; container.style.backgroundColor = '#020617';
+        container.style.color = '#e5e7eb'; container.style.fontFamily = "'Inter', sans-serif";
+        
+        container.innerHTML = `
+          <div style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:-1;">
+             <img src="https://images.unsplash.com/photo-1544200175-ca6e80a7b323?q=80&w=1280&auto=format&fit=crop" style="width:100%; height:100%; object-fit:cover; opacity:0.6; filter: brightness(0.8) contrast(1.2);" crossorigin="anonymous">
+             <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.25) 0%, rgba(2, 6, 23, 0.8) 100%);"></div>
+          </div>
+          <div style="text-align: center; margin-bottom: 25px;">
+             <h1 style="margin: 0; font-size: 55px; font-family: 'Teko', sans-serif; letter-spacing: 0.05em; line-height: 1.1;">
+                <span style="color: #4dd0e1; text-shadow: 0px 0px 20px rgba(14, 165, 233, 0.8), 2px 2px 0px #000;">ASTRAL51</span> 
+                <span style="color: #f8fafc; text-shadow: 0px 0px 15px rgba(255, 255, 255, 0.4), 2px 2px 0px #000;">TOURNAMENT SERIES</span>
+             </h1>
+             <div style="font-size: 22px; color: #f8fafc; letter-spacing: 0.3em; font-family: 'Inter', sans-serif; font-weight: 700; text-shadow: 2px 2px 4px #000;">OFFICIAL RESULTS</div>
+          </div>
+          <div style="display:flex; gap:25px; align-items:center; justify-content:center;">
+            <div style="flex:1;">
+               <table style="width:100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background: #1e3a8a; color: #e0f2fe; font-size: 16px;">
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">RANK</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; text-align: left;">TEAM NAME</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">R1</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">PP1</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">R2</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">PP2</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">R3</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">PP3</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; color: #facc15;">TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows.map((r, i) => `
+                    <tr style="background: ${i % 2 === 0 ? 'rgba(15, 23, 42, 0.5)' : 'transparent'};">
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold;">${i + 1}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); color: #fff;">${r.team}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.r1 || '-'}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.pp1 || '-'}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.r2 || '-'}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.pp2 || '-'}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.r3 || '-'}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.pp3 || '-'}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold; color: #facc15;">${r.total || '0'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+               </table>
+            </div>
+            <div style="width: 440px; display:flex; flex-direction:column; gap:30px;">
+               <table style="width:100%; border-collapse:collapse; border: 1px solid rgba(51,65,85,0.5);">
+                  <thead>
+                     <tr style="background: #1e3a8a; color:#e2e8f0; font-size:14px;">
+                        <th rowspan="2" style="padding:6px; text-align:left;">IN-GAME NAME</th>
+                        <th colspan="3" style="padding:6px;">KILLS</th>
+                        <th rowspan="2" style="padding:6px;">TOTAL</th>
+                     </tr>
+                     <tr style="background:#1d4ed8; color:#e2e8f0; font-size:12px;">
+                        <th>R1</th><th>R2</th><th>R3</th>
+                     </tr>
+                  </thead>
+                  <tbody>${playerRowsHtml.join('')}</tbody>
+               </table>
+               <div>
+                 <div style="font-family:'Teko', sans-serif; font-size:42px; font-weight:600; text-align:center; color:#e2e8f0; background:#334155; padding:6px 0 0 0; border:1px solid #1e293b; line-height:1;">${dateText}</div>
+                 <table style="width:100%; border-collapse:collapse; border:1px solid #0f172a; font-size:16px; margin-top:5px;">
+                   <tbody>
+                      <tr><td style="background:#475569; padding:6px; text-align:center; width:25%;">TOP 1</td><td style="background:#1e293b; padding:6px; text-align:center; width:55%; font-size:20px;">${top1}</td><td style="background:#334155; padding:6px; text-align:center; width:20%; border-left:1px solid #0f172a; font-size:20px;">${pts1}</td></tr>
+                      <tr><td style="background:#475569; padding:6px; text-align:center;">TOP 2</td><td style="background:#1e293b; padding:6px; text-align:center; font-size:20px;">${top2}</td><td style="background:#334155; padding:6px; text-align:center; border-left:1px solid #0f172a; font-size:20px;">${pts2}</td></tr>
+                      <tr><td style="background:#475569; padding:6px; text-align:center;">TOP 3</td><td style="background:#1e293b; padding:6px; text-align:center; font-size:20px;">${top3}</td><td style="background:#334155; padding:6px; text-align:center; border-left:1px solid #0f172a; font-size:20px;">${pts3}</td></tr>
+                      <tr><td style="background:#475569; padding:6px; text-align:center;">MVP</td><td style="background:#1e293b; color:#facc15; padding:6px; text-align:center; font-size:20px; font-weight:600;">${mvpName}</td><td style="background:#334155; padding:6px; text-align:center; border-left:1px solid #0f172a; font-size:20px;">${mvpStats}</td></tr>
+                   </tbody>
+                 </table>
+               </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(container);
+        try {
+          const canvas = await html2canvas(container, { backgroundColor: '#000', scale: 2, useCORS: true });
+          const link = document.createElement('a');
+          link.download = `Tournament_Results_${dateText.replace(/\s+/g, '_')}.png`;
+          link.href = canvas.toDataURL('image/png', 1.0);
+          link.click();
+          showAdminToast("Image Saved!", "success");
+        } catch (err) { showAdminToast("Failed to generate image.", "error"); }
+        finally { document.body.removeChild(container); }
+      };
+    }
 
     async function loadBannedList() {
       // Clear fields first
@@ -2888,6 +4153,9 @@
     setInterval(() => {
       if (scrimView.style.display !== 'none') {
         loadAdminSlots();
+      }
+      if (tournamentView && tournamentView.style.display !== 'none') {
+        loadTournamentData().then(() => renderTournamentSlots());
       }
     }, 8000);
     setInterval(checkGlobalStatus, 15000);
