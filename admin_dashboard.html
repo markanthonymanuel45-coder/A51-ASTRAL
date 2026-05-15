@@ -1174,11 +1174,18 @@
                       <th colspan="2"
                         style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
                         R3</th>
+                      <th colspan="2"
+                        style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        R4</th>
                       <th rowspan="2" style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);">TOTAL</th>
                       <th rowspan="2" class="action-head"
                         style="padding:6px 4px; border-bottom:1px solid rgba(55,65,81,0.9);"></th>
                     </tr>
                     <tr style="background:rgba(30,41,59,0.95);">
+                      <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9);">KILLS</th>
+                      <th
+                        style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
+                        PP</th>
                       <th style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9);">KILLS</th>
                       <th
                         style="padding:4px; font-size:10px; border-bottom:1px solid rgba(55,65,81,0.9); border-right:1px solid rgba(55,65,81,0.5);">
@@ -1210,13 +1217,14 @@
                     <thead>
                       <tr style="background:rgba(30,41,59,0.95);">
                         <th rowspan="2" style="text-align:left; padding:4px;">IN-GAME NAME</th>
-                        <th colspan="3" style="padding:4px;">KILLS</th>
+                        <th colspan="4" style="padding:4px;">KILLS</th>
                         <th rowspan="2" style="padding:4px;">TOTAL</th>
                       </tr>
                       <tr style="background:rgba(15,23,42,0.95);">
                         <th style="font-size:9px;">R1</th>
                         <th style="font-size:9px;">R2</th>
                         <th style="font-size:9px;">R3</th>
+                        <th style="font-size:9px;">R4</th>
                       </tr>
                     </thead>
                     <tbody id="tournamentAdminPlayersBody">
@@ -1927,6 +1935,8 @@
         addCell(existingScore?.pp2 || '');
         addCell(existingScore?.r3 || '');
         addCell(existingScore?.pp3 || '');
+        addCell(existingScore?.r4 || '');
+        addCell(existingScore?.pp4 || '');
 
         const totalTd = document.createElement('td');
         totalTd.style.padding = '4px 4px';
@@ -1970,7 +1980,7 @@
         const updateRowTotal = () => {
           let sum = 0;
           scoreInputs.forEach((inp, idx) => {
-            if (idx === 6) return;
+            if (idx === 8) return;
             let v = inp.value.trim().toUpperCase();
             if (v === 'NO SHOW' || v === 'VOID') v = '0';
             const n = parseInt(v, 10);
@@ -1979,7 +1989,7 @@
           totalInput.value = sum;
         };
         scoreInputs.forEach((inp, idx) => {
-          if (idx < 6) inp.addEventListener('input', updateRowTotal);
+          if (idx < 8) inp.addEventListener('input', updateRowTotal);
         });
       });
 
@@ -1990,9 +2000,10 @@
           const vB = parseInt(b.score?.total || 0, 10) || 0;
           const vA = parseInt(a.score?.total || 0, 10) || 0;
           if (vB !== vA) return vB - vA;
-          const kA = (parseInt(a.score?.r1, 10) || 0) + (parseInt(a.score?.r2, 10) || 0) + (parseInt(a.score?.r3, 10) || 0);
-          const kB = (parseInt(b.score?.r1, 10) || 0) + (parseInt(b.score?.r2, 10) || 0) + (parseInt(b.score?.r3, 10) || 0);
-          return kB - kA;
+          // TIE BREAKER: Highest single round kills
+          const maxA = Math.max(parseInt(a.score?.r1, 10) || 0, parseInt(a.score?.r2, 10) || 0, parseInt(a.score?.r3, 10) || 0, parseInt(a.score?.r4, 10) || 0);
+          const maxB = Math.max(parseInt(b.score?.r1, 10) || 0, parseInt(b.score?.r2, 10) || 0, parseInt(b.score?.r3, 10) || 0, parseInt(b.score?.r4, 10) || 0);
+          return maxB - maxA;
         }).slice(0, 3);
 
         let savedPlayers = [];
@@ -2006,18 +2017,20 @@
           tournamentAdminPlayersBody.innerHTML += `<tr><td colspan="5" style="background:rgba(15,23,42,0.95); font-weight:bold; color:#4dd0e1; text-align:center; padding:4px; letter-spacing: 1px;">TOP ${idx + 1} - ${tName}</td></tr>`;
 
           for (let p = 0; p < 4; p++) {
-            const player = tData.players[p] || { name: '', r1: '', r2: '', r3: '' };
+            const player = tData.players[p] || { name: '', r1: '', r2: '', r3: '', r4: '' };
             const inputStyle = "width:100%; border:1px solid rgba(255,255,255,0.2); background:rgba(15,23,42,0.6); color:#fff; font-size:10px; padding:3px; text-align:center; border-radius:4px;";
             const nameStyle = "width:100%; border:1px solid rgba(255,255,255,0.2); background:rgba(15,23,42,0.6); color:#fff; font-size:10px; padding:3px; border-radius:4px;";
 
             let pR1 = parseInt(player.r1, 10); if (isNaN(pR1)) pR1 = 0;
             let pR2 = parseInt(player.r2, 10); if (isNaN(pR2)) pR2 = 0;
             let pR3 = parseInt(player.r3, 10); if (isNaN(pR3)) pR3 = 0;
-            let tot = pR1 + pR2 + pR3;
+            let pR4 = parseInt(player.r4, 10); if (isNaN(pR4)) pR4 = 0;
+            let tot = pR1 + pR2 + pR3 + pR4;
             let d1 = player.r1 === '' ? '-' : pR1;
             let d2 = player.r2 === '' ? '-' : pR2;
             let d3 = player.r3 === '' ? '-' : pR3;
-            let displayTot = (d1 === '-' && d2 === '-' && d3 === '-') ? '-' : tot;
+            let d4 = player.r4 === '' ? '-' : pR4;
+            let displayTot = (d1 === '-' && d2 === '-' && d3 === '-' && d4 === '-') ? '-' : tot;
 
             const prow = document.createElement('tr');
             prow.innerHTML = `
@@ -2025,6 +2038,7 @@
                   <td style="padding:3px;"><input type="text" class="tournament-player-input tournament-p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r1" value="${player.r1}"></td>
                   <td style="padding:3px;"><input type="text" class="tournament-player-input tournament-p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r2" value="${player.r2}"></td>
                   <td style="padding:3px;"><input type="text" class="tournament-player-input tournament-p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r3" value="${player.r3}"></td>
+                  <td style="padding:3px;"><input type="text" class="tournament-player-input tournament-p-kill" style="${inputStyle}" data-team="${tName}" data-idx="${p}" data-field="r4" value="${player.r4 || ''}"></td>
                   <td style="padding:3px; text-align:center; font-weight:bold;" class="tournament-p-total">${displayTot}</td>
                 `;
             tournamentAdminPlayersBody.appendChild(prow);
@@ -2602,10 +2616,10 @@
             const vB = parseInt(b.score?.total || 0, 10) || 0;
             const vA = parseInt(a.score?.total || 0, 10) || 0;
             if (vB !== vA) return vB - vA;
-            // TIE BREAKER RULE
-            const kA = (parseInt(a.score?.r1, 10) || 0) + (parseInt(a.score?.r2, 10) || 0) + (parseInt(a.score?.r3, 10) || 0);
-            const kB = (parseInt(b.score?.r1, 10) || 0) + (parseInt(b.score?.r2, 10) || 0) + (parseInt(b.score?.r3, 10) || 0);
-            return kB - kA;
+            // TIE BREAKER: Highest single round kills
+            const maxA = Math.max(parseInt(a.score?.r1, 10) || 0, parseInt(a.score?.r2, 10) || 0, parseInt(a.score?.r3, 10) || 0);
+            const maxB = Math.max(parseInt(b.score?.r1, 10) || 0, parseInt(b.score?.r2, 10) || 0, parseInt(b.score?.r3, 10) || 0);
+            return maxB - maxA;
           }).slice(0, 3);
 
           let savedPlayers = [];
@@ -3392,12 +3406,14 @@
         const team = cells[1].textContent;
         const getVal = (idx) => cells[idx].querySelector('input')?.value.trim() || '';
         if (team && team !== '—') {
+          const r1v = getVal(2); const r2v = getVal(4); const r3v = getVal(6);
           rows.push({
             team,
-            r1: getVal(2), pp1: getVal(3),
-            r2: getVal(4), pp2: getVal(5),
-            r3: getVal(6), pp3: getVal(7),
-            total: getVal(8)
+            r1: r1v, pp1: getVal(3),
+            r2: r2v, pp2: getVal(5),
+            r3: r3v, pp3: getVal(7),
+            total: getVal(8),
+            maxKills: Math.max(parseInt(r1v, 10) || 0, parseInt(r2v, 10) || 0, parseInt(r3v, 10) || 0)
           });
         }
       });
@@ -3410,7 +3426,12 @@
         const n = parseInt(v, 10);
         return isNaN(n) ? 0 : n;
       };
-      rows.sort((a, b) => safeNum(b.total) - safeNum(a.total));
+      rows.sort((a, b) => {
+        const totalA = safeNum(a.total);
+        const totalB = safeNum(b.total);
+        if (totalB !== totalA) return totalB - totalA;
+        return (b.maxKills || 0) - (a.maxKills || 0);
+      });
 
       const displayDate = scoreboardDatePicker.value || new Date().toISOString().slice(0, 10);
       const timestampLabel = displayDate;
@@ -3777,7 +3798,7 @@
         const rows = [];
         tbody.querySelectorAll('tr').forEach(tr => {
           const cells = tr.querySelectorAll('td');
-          if (cells.length < 9) return;
+          if (cells.length < 11) return;
           const team = cells[1].textContent;
           const getVal = (idx) => {
             const v = cells[idx].querySelector('input')?.value.trim();
@@ -3791,7 +3812,9 @@
             pp2: getVal(5),
             r3: getVal(6),
             pp3: getVal(7),
-            total: getVal(8),
+            r4: getVal(8),
+            pp4: getVal(9),
+            total: getVal(10),
           });
         });
         if (!rows.length) return showAdminToast('Nothing to save.', 'info');
@@ -3806,7 +3829,7 @@
             const field = inp.getAttribute('data-field');
             if (!team) return;
             if (!dataMap[team]) dataMap[team] = [];
-            if (!dataMap[team][idx]) dataMap[team][idx] = { name: '', r1: '', r2: '', r3: '' };
+            if (!dataMap[team][idx]) dataMap[team][idx] = { name: '', r1: '', r2: '', r3: '', r4: '' };
             dataMap[team][idx][field] = inp.value;
           });
           const finalPlayers = Object.keys(dataMap).map(team => ({ team, players: dataMap[team] }));
@@ -3873,14 +3896,15 @@
         const rows = [];
         tbody.querySelectorAll('tr').forEach(tr => {
           const cells = tr.querySelectorAll('td');
-          if (cells.length < 9) return;
+          if (cells.length < 11) return;
           const team = cells[1].textContent;
           const r1 = parseInt(cells[2].querySelector('input')?.value || '0', 10);
           const r2 = parseInt(cells[4].querySelector('input')?.value || '0', 10);
           const r3 = parseInt(cells[6].querySelector('input')?.value || '0', 10);
-          const total = parseInt(cells[8].querySelector('input')?.value || '0', 10);
+          const r4 = parseInt(cells[8].querySelector('input')?.value || '0', 10);
+          const total = parseInt(cells[10].querySelector('input')?.value || '0', 10);
           if (team) {
-            const maxKills = Math.max(isNaN(r1) ? 0 : r1, isNaN(r2) ? 0 : r2, isNaN(r3) ? 0 : r3);
+            const maxKills = Math.max(isNaN(r1) ? 0 : r1, isNaN(r2) ? 0 : r2, isNaN(r3) ? 0 : r3, isNaN(r4) ? 0 : r4);
             rows.push({ team, total, maxKills });
           }
         });
@@ -3932,16 +3956,19 @@
         const rows = [];
         tbody.querySelectorAll('tr').forEach(tr => {
           const cells = tr.querySelectorAll('td');
-          if (cells.length < 9) return;
+          if (cells.length < 11) return;
           const team = cells[1].textContent;
           const getVal = (idx) => cells[idx].querySelector('input')?.value.trim() || '';
           if (team) {
+            const r1v = getVal(2); const r2v = getVal(4); const r3v = getVal(6); const r4v = getVal(8);
             rows.push({
               team,
-              r1: getVal(2), pp1: getVal(3),
-              r2: getVal(4), pp2: getVal(5),
-              r3: getVal(6), pp3: getVal(7),
-              total: getVal(8)
+              r1: r1v, pp1: getVal(3),
+              r2: r2v, pp2: getVal(5),
+              r3: r3v, pp3: getVal(7),
+              r4: r4v, pp4: getVal(9),
+              total: getVal(10),
+              maxKills: Math.max(parseInt(r1v, 10) || 0, parseInt(r2v, 10) || 0, parseInt(r3v, 10) || 0, parseInt(r4v, 10) || 0)
             });
           }
         });
@@ -3949,7 +3976,12 @@
         if (rows.length === 0) return showAdminToast("No data to save.", "error");
 
         const safeNum = (v) => parseInt(v, 10) || 0;
-        rows.sort((a, b) => safeNum(b.total) - safeNum(a.total));
+        rows.sort((a, b) => {
+          const totalA = safeNum(a.total);
+          const totalB = safeNum(b.total);
+          if (totalB !== totalA) return totalB - totalA;
+          return (b.maxKills || 0) - (a.maxKills || 0);
+        });
 
         const playerRowsHtml = [];
         const tAdminPlayersBody = document.getElementById('tournamentAdminPlayersBody');
@@ -3963,6 +3995,7 @@
               const r1 = tr.querySelector('input[data-field="r1"]')?.value || '-';
               const r2 = tr.querySelector('input[data-field="r2"]')?.value || '-';
               const r3 = tr.querySelector('input[data-field="r3"]')?.value || '-';
+              const r4 = tr.querySelector('input[data-field="r4"]')?.value || '-';
               const tot = tr.querySelector('.tournament-p-total')?.textContent || '-';
               playerRowsHtml.push(`
                   <tr style="background: rgba(30,41,59,0.5);">
@@ -3970,6 +4003,7 @@
                     <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r1}</td>
                     <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r2}</td>
                     <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r3}</td>
+                    <td style="text-align:center; color:#fff; border-bottom:1px solid rgba(51,65,85,0.5);">${r4}</td>
                     <td style="text-align:center; color:#facc15; font-weight:bold; border-bottom:1px solid rgba(51,65,85,0.5);">${tot}</td>
                   </tr>
                 `);
@@ -4017,6 +4051,8 @@
                     <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">PP2</th>
                     <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">R3</th>
                     <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">PP3</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">R4</th>
+                    <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af;">PP4</th>
                     <th style="padding: 10px 6px; border-bottom: 2px solid #1e40af; color: #facc15;">TOTAL</th>
                   </tr>
                 </thead>
@@ -4031,6 +4067,8 @@
                       <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.pp2 || '-'}</td>
                       <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.r3 || '-'}</td>
                       <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.pp3 || '-'}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.r4 || '-'}</td>
+                      <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center;">${r.pp4 || '-'}</td>
                       <td style="padding: 6px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); text-align: center; font-weight: bold; color: #facc15;">${r.total || '0'}</td>
                     </tr>
                   `).join('')}
@@ -4042,11 +4080,11 @@
                   <thead>
                      <tr style="background: #1e3a8a; color:#e2e8f0; font-size:14px;">
                         <th rowspan="2" style="padding:6px; text-align:left;">IN-GAME NAME</th>
-                        <th colspan="3" style="padding:6px;">KILLS</th>
+                        <th colspan="4" style="padding:6px;">KILLS</th>
                         <th rowspan="2" style="padding:6px;">TOTAL</th>
                      </tr>
                      <tr style="background:#1d4ed8; color:#e2e8f0; font-size:12px;">
-                        <th>R1</th><th>R2</th><th>R3</th>
+                        <th>R1</th><th>R2</th><th>R3</th><th>R4</th>
                      </tr>
                   </thead>
                   <tbody>${playerRowsHtml.join('')}</tbody>
